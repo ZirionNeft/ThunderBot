@@ -38,6 +38,6 @@ public class CommandHandler {
     }
 
     private void helpCommand(MessageReceivedEvent event) {
-        BotUtils.sendMessage(event.getChannel(), "This is test message\nJust ignore it, if you not a developer\nBut if yes and you see this, then bot is running!");
+        BotUtils.sendMessage(event.getChannel(), "```Some information```");
     }
 }

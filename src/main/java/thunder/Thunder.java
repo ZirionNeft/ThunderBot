@@ -3,7 +3,6 @@ package thunder;
 import sx.blah.discord.api.IDiscordClient;
 
 public class Thunder {
-    static Thunder bot;
     static IDiscordClient client;
     static Settings settings;
 
@@ -11,13 +10,14 @@ public class Thunder {
         settings = new Settings();
         settings.init();
 
+        Database db = new Database();
+        db.init();
+
         if (args.length < 1)
             throw new IllegalArgumentException((String) settings.getMsg("args_not_found"));
 
         client = BotUtils.getBuiltDiscrodClient(args[0]);
-
         client.getDispatcher().registerListener(new CommandHandler());
-
         client.login();
     }
 

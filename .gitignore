@@ -1,4 +1,6 @@
+# Thunder files
 .idea/
+*.db
 
 # Compiled class file
 *.class

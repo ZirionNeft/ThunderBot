@@ -1,1 +1,1 @@
-{"args_not_found":"Не указаны аргументы!","auth_fail":"Ошибка авторизации!","thunder_chat_prefix":">","config_version":"0.1"}
+{"thunder_chat_locale":"en","thunder_db_type":"sqlite","thunder_db_path":"data.db","thunder_chat_prefix":">","config_version":"0.11"}
