@@ -1,6 +1,9 @@
 # Thunder files
 .idea/
 *.db
+*.json
+weather_api_key
+discord_bot_key
 
 # Compiled class file
 *.class

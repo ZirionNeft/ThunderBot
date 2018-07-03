@@ -5,26 +5,24 @@ import sx.blah.discord.api.IDiscordClient;
 public class Thunder {
     static IDiscordClient client;
     static Settings settings;
+    static Database db;
 
     public static void main(String[] args) {
         settings = new Settings();
         settings.init();
 
-        Database db = new Database();
+        db = new Database();
         db.init();
 
-        if (args.length < 1)
-            throw new IllegalArgumentException((String) settings.getMsg("args_not_found"));
 
-        client = BotUtils.getBuiltDiscrodClient(args[0]);
+        System.out.println("[INFO] Weather API powered by " + settings.getOne("thunder_weather_service"));
+
+        client = BotUtils.getBuiltDiscrodClient(BotUtils.getToken("discord"));
+
         client.getDispatcher().registerListener(new CommandHandler());
+        client.getDispatcher().registerListener(new EventsHandler());
+
         client.login();
-    }
 
-    private Thunder() {
-
-    }
-    public IDiscordClient getClient() {
-        return this.client;
     }
 }
