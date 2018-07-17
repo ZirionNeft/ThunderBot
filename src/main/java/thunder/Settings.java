@@ -1,33 +1,36 @@
 package thunder;
 
-import javafx.application.Application;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Properties;
 
 public class Settings {
+    static Logger logger = Logger.getLogger("Settings.class");
 
     private Properties settings;
-    private JSONObject locale;
+    private Properties keys;
     private static final String cfgPath = "settings.properties";
+    private static final String keysPath = "keys.properties";
 
-    private static final String CFG_VERSION = "0.2";
+    private static final String CFG_VERSION = "0.5";
 
     private static HashMap<String, String> CFG = new HashMap<String, String>();
 
     public Settings() {
         settings = new Properties();
+        keys = new Properties();
 
         CFG.put("thunder_chat_prefix", ">");
-        CFG.put("thunder_db_type", "sqlite");
         CFG.put("thunder_weather_service", "OpenWeatherMap");
-        CFG.put("thunder_db_path", "data.db");
+        CFG.put("thunder_translate_service", "Yandex");
+        CFG.put("db_host", "localhost");
+        CFG.put("db_user", "root");
+        CFG.put("db_password", "");
 
-        settings.setProperty("config_version", CFG_VERSION);
+        CFG.put("config_version", CFG_VERSION);
     }
 
     public void init() {
@@ -44,41 +47,37 @@ public class Settings {
             FileReader file = new FileReader(cfgPath);
             settings.load(file);
 
-            if(!checkConfig()) {
-                System.out.println("[Thunder] Configuration file is up to date!");
+            if (!new File(keysPath).exists()) {
+                logger.error("File '" + keysPath + "' not found!");
+                System.exit(0);
             } else {
-                System.out.println("[Thunder] Configuration file has been updated to ver." + CFG_VERSION);
+                FileReader fileReader = new FileReader(keysPath);
+                keys.load(fileReader);
+
+                keys.forEach((K, V) -> {
+                    if (V.toString().trim().equals("")) logger.warn("Property '" + K + "' in '" + keysPath + "' not specified.");
+                });
             }
+
+            String ver = settings.get("config_version").toString();
+            if (!ver.equals(CFG_VERSION) || settings.size() != CFG.size()) {
+                CFG.forEach((key, value) -> {
+                    settings.putIfAbsent(key, value);
+                });
+                settings.setProperty("config_version", CFG_VERSION);
+                settings.store(new FileWriter(cfgPath), "");
+                logger.info("File '" + cfgPath + "' has been updated to ver." + CFG_VERSION);
+            }
+
         } catch (IOException e ) {
             e.printStackTrace();
         }
     }
 
-    private boolean checkConfig () {
-        boolean updated = false;
+    public String getApiKey (String type) { return this.keys.getProperty(type).trim(); }
 
-        try {
-            String ver = settings.get("config_version").toString();
-            if (!ver.equals(CFG_VERSION)) {
-                updated = true;
-
-                CFG.forEach((key, value) -> {
-                    if(settings.get(key).toString().isEmpty()) {
-                        settings.put(key, value);
-                    }
-                });
-                settings.setProperty("config_version", CFG_VERSION);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return updated;
-    }
-
-    public Object getOne (String key) {
-        return this.settings.get(key);
+    public String getOne (String key) {
+        return this.settings.get(key).toString();
     }
 
 }

@@ -1,28 +1,30 @@
 package thunder;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
 import sx.blah.discord.api.IDiscordClient;
 
 public class Thunder {
+    static Logger logger = Logger.getLogger("Thunder.class");
+
     static IDiscordClient client;
     static Settings settings;
-    static Database db;
 
     public static void main(String[] args) {
+        BasicConfigurator.configure();
+
         settings = new Settings();
         settings.init();
 
-        db = new Database();
-        db.init();
+        Database.init();
 
+        logger.info("Weather API powered by " + settings.getOne("thunder_weather_service"));
 
-        System.out.println("[INFO] Weather API powered by " + settings.getOne("thunder_weather_service"));
+        client = BotUtils.getBotDiscordClient(settings.getApiKey("discord_key"));
 
-        client = BotUtils.getBuiltDiscrodClient(BotUtils.getToken("discord"));
-
-        client.getDispatcher().registerListener(new CommandHandler());
+        client.getDispatcher().registerListener(new CommandsHandler());
         client.getDispatcher().registerListener(new EventsHandler());
 
         client.login();
-
     }
 }

@@ -2,8 +2,9 @@
 .idea/
 *.db
 *.json
-weather_api_key
-discord_bot_key
+settings.properties
+keys.properties
+target/
 
 # Compiled class file
 *.class
