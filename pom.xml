@@ -4,7 +4,7 @@
 
     <groupId>zirionneft</groupId>
     <artifactId>Thunder</artifactId>
-    <version>b0.4</version>
+    <version>b0.5</version>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>

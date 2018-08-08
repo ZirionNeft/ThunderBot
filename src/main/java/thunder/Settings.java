@@ -1,9 +1,12 @@
 package thunder;
 
 import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -18,10 +21,15 @@ public class Settings {
     private static final String CFG_VERSION = "0.5";
 
     private static HashMap<String, String> CFG = new HashMap<String, String>();
+    private static ArrayList<String> KEYS = new ArrayList<String>();
 
     public Settings() {
         settings = new Properties();
         keys = new Properties();
+
+        KEYS.add("discord_key");
+        KEYS.add("weather_key");
+        KEYS.add("translate_key");
 
         CFG.put("thunder_chat_prefix", ">");
         CFG.put("thunder_weather_service", "OpenWeatherMap");
@@ -49,6 +57,13 @@ public class Settings {
 
             if (!new File(keysPath).exists()) {
                 logger.error("File '" + keysPath + "' not found!");
+                FileWriter fw = new FileWriter(new File(keysPath));
+                for (String s : KEYS) {
+                    keys.setProperty(s, "");
+                }
+                keys.store(fw, null);
+                logger.warn("The file was created, specify all possible keys for the correct work of the bot!");
+
                 System.exit(0);
             } else {
                 FileReader fileReader = new FileReader(keysPath);
