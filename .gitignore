@@ -5,6 +5,7 @@
 settings.properties
 keys.properties
 target/
+logs/
 
 # Compiled class file
 *.class
