@@ -3,17 +3,13 @@ package thunder.command;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
-import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IUser;
 import thunder.BotUtils;
 import thunder.Thunder;
 import thunder.handler.Events;
 
-import javax.swing.text.html.parser.Parser;
-import javax.xml.ws.http.HTTPException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.logging.Logger;
@@ -24,21 +20,18 @@ public class Translate {
     private static final String provider = Thunder.getSettingsInstance().getOne("thunder_translate_service");
 
     public static void run(MessageReceivedEvent event, List<String> args) {
-        IUser author = event.getAuthor();
-        String service = Thunder.getSettingsInstance().getOne("thunder_translate_service");
-
         try {
             if (args.isEmpty()) {
-                BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** ```>tr```");
+                help(event);
             }
 
             else if (args.get(0).equals("list")) {
                 if (args.size() != 2) {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** ```>tr list 'lang'" +
-                            "\n* lang - Language for which the list is needed```");
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `tr list 'lang'`" +
+                            "\n* lang - Language for which the list is needed");
                 } else {
                     JSONObject list = BotUtils.HTTPQuery("https://translate.yandex.net/api/v1.5/tr.json/getLangs?key=" +
-                            Thunder.getSettingsInstance().getApiKey("translate_key") +
+                            Thunder.getSettingsInstance().getKey("translate_key") +
                             "&ui=" + args.get(1));
                     if (list.get("code") == null) {
                         StringBuilder buffer = new StringBuilder("Supported languages for translate from **[" + args.get(1).toUpperCase() + "]**\n```");
@@ -54,9 +47,7 @@ public class Translate {
             }
 
             else if (args.get(0).equals("help")) {
-                BotUtils.sendMessage(event.getChannel(), ":zap: **Translate commands** :zap:\n" +
-                        "```>tr list 'lang'```:arrow_up: Shows an available translation language list\n" +
-                        "```>tr 'lang'```:arrow_up: Translation. Lang format: *en*(to) or *en-ru*(from-to)\n");
+                help(event);
             }
 
             else if (args.size() == 1) {
@@ -67,7 +58,7 @@ public class Translate {
                         BotUtils.sendMessage(event.getChannel(), ":warning: User with that name is already use this command!");
                     }
                 } else {
-                    BotUtils.sendMessage(event.getChannel(), "Wrong language code! Try to use help command ```>tr help```");
+                    BotUtils.sendMessage(event.getChannel(), "Wrong language code! Get more info `tr help`");
                 }
             }
         } catch (Exception e) {
@@ -75,9 +66,15 @@ public class Translate {
         }
     }
 
+    public static void help(MessageReceivedEvent event) {
+        BotUtils.sendMessage(event.getChannel(), ":zap: **Translate commands** :zap:\n" +
+                "`tr list 'lang'` - Shows an available translation language list\n" +
+                "`tr 'lang'` - Translation. Lang format: *en*(to) or *en-ru*(from-to)\n");
+    }
+
     public static void showTranslate(MessageReceivedEvent event, String lang, String msg){
         try {
-            JSONObject trQuery = BotUtils.HTTPQuery("https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + Thunder.getSettingsInstance().getApiKey("translate_key")
+            JSONObject trQuery = BotUtils.HTTPQuery("https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + Thunder.getSettingsInstance().getKey("translate_key")
                     + "&text=" + URLEncoder.encode(msg, "UTF-8") + "&lang=" + lang);
 
             String code = trQuery.get("code").toString();
@@ -90,7 +87,7 @@ public class Translate {
 
                 BotUtils.sendMessage(event.getChannel(), outMsg);
             } else {
-                logger.warning("Translate ERROR: code " + code + " - Visit API-provider to get more info");
+                logger.warning("Translate ERROR: code " + code + " - Visit API-provider site to get more info");
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -102,7 +99,7 @@ public class Translate {
                 int code = Integer.parseInt(eMsg.substring(pos + "response code: ".length(), pos + "response code: ".length() + 3));
                 switch (code) {
                     case 400:
-                        BotUtils.sendMessage(event.getChannel(), "Wrong language code! Try to use help command ```>tr help```");
+                        BotUtils.sendMessage(event.getChannel(), "Error or wrong language code! Get more info `tr help`");
                         break;
                 }
             } else {

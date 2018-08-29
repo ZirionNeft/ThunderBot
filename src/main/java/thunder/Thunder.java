@@ -2,9 +2,17 @@ package thunder;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import sx.blah.discord.api.IDiscordClient;
 import thunder.handler.Commands;
 import thunder.handler.Events;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class Thunder {
     static Logger logger = Logger.getLogger("Thunder.class");
@@ -21,7 +29,7 @@ public class Thunder {
 
         logger.info("Weather API powered by " + settings.getOne("thunder_weather_service"));
 
-        client = BotUtils.getBotDiscordClient(settings.getApiKey("discord_key"));
+        client = BotUtils.getBotDiscordClient(settings.getKey("discord_key"));
 
         client.getDispatcher().registerListener(new Commands());
         client.getDispatcher().registerListener(new Events());
@@ -35,5 +43,26 @@ public class Thunder {
 
     public static Settings getSettingsInstance() {
         return settings;
+    }
+
+    public static String getVersion() {
+        try {
+            Model model;
+            MavenXpp3Reader reader = new MavenXpp3Reader();
+            if ((new File("pom.xml")).exists())
+                model = reader.read(new FileReader("pom.xml"));
+            else
+                model = reader.read(
+                        new InputStreamReader(
+                                Thunder.class.getResourceAsStream(
+                                        "/META-INF/maven/Thunder/thunder/pom.xml"
+                                )
+                        )
+                );
+            return model.getVersion();
+        } catch (IOException | XmlPullParserException e) {
+            e.printStackTrace();
+        }
+        return "Error";
     }
 }

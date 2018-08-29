@@ -1,9 +1,13 @@
 package thunder;
 
+import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 public class Database {
@@ -24,7 +28,10 @@ public class Database {
 
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_weather` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, discord_user_id CHAR(64) NOT NULL, city CHAR(128) NOT NULL, display_time CHAR(128) NOT NULL)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_emoji_usages` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, emoji_name CHAR(64) NOT NULL, counter INT DEFAULT 0 NOT NULL, discord_server CHAR(128) NOT NULL)");
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_timezones` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, city CHAR(128) NOT NULL, timezone CHAR(32) NOT NULL, offset CHAR(32) NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_stats` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, guild_id CHAR(64) NOT NULL, users_summary INT DEFAULT 0 NOT NULL, messages INT DEFAULT 0 NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_users` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, discord_user_id CHAR(64) NOT NULL, exp INTEGER DEFAULT 0 NOT NULL, money INT DEFAULT 200 NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_guilds_config` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, guild_id CHAR(64) NOT NULL, prefix CHAR(4) DEFAULT '>' NOT NULL, manage_role CHAR(64) DEFAULT '' NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_guilds_managers` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, guild_id CHAR(64) NOT NULL, user_id CHAR(64) NOT NULL)");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -100,4 +107,91 @@ public class Database {
         return list;
     }
 
+    public static HashMap<Long, String> getGuildPrefixes() {
+        HashMap<Long, String> prefixes = new HashMap<>();
+        try (Connection c = connect()) {
+            PreparedStatement preparedStatement = c.prepareStatement("SELECT prefix,guild_id FROM thunder_guilds_config");
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                Long guild = rs.getLong("guild_id");
+                prefixes.put(guild, rs.getString("prefix"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return prefixes;
+    }
+
+    public static void insertGuildConfigRow(IGuild guild) {
+        try (Connection c = connect()) {
+            long guild_id = guild.getLongID();
+            PreparedStatement preparedStatement = c.prepareStatement("SELECT id FROM thunder_guilds_config WHERE guild_id=?");
+            preparedStatement.setObject(1, Long.toString(guild_id));
+            ResultSet rs = preparedStatement.executeQuery();
+            if (!rs.next()) {
+                PreparedStatement insert = c.prepareStatement("INSERT INTO thunder_guilds_config(`guild_id`) VALUES(?)");
+                insert.setObject(1, Long.toString(guild_id));
+                insert.execute();
+            }
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean updateGuildPrefix(IGuild guild, String prefix) {
+        try (Connection c = connect()) {
+            long guild_id = guild.getLongID();
+            PreparedStatement update = c.prepareStatement("UPDATE thunder_guilds_config SET prefix=? WHERE guild_id=?");
+            update.setString(1, prefix);
+            update.setObject(2, Long.toString(guild_id));
+
+            return update.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static ArrayList<IUser> getGuildManagers(IGuild guild) {
+        ArrayList<IUser> users = new ArrayList<>();
+        try (Connection c = connect()) {
+            PreparedStatement preparedStatement = c.prepareStatement("SELECT user_id FROM thunder_guilds_managers WHERE guild_id=?");
+            preparedStatement.setLong(1, guild.getLongID());
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                IUser user = Thunder.getClientInstance().getUserByID(rs.getLong("user_id"));
+                users.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    public static IRole getGuildManageRole(IGuild guild) {
+        try (Connection c = connect()) {
+            PreparedStatement preparedStatement = c.prepareStatement("SELECT manage_role FROM thunder_guilds_config WHERE guild_id=?");
+            preparedStatement.setLong(1, guild.getLongID());
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return Thunder.getClientInstance().getRoleByID(rs.getLong("manage_role"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static boolean updateGuildManageRole(IGuild guild, IRole role) {
+        try (Connection c = connect()) {
+            PreparedStatement preparedStatement = c.prepareStatement("UPDATE thunder_guilds_config SET manage_role=? WHERE guild_id=?");
+            preparedStatement.setLong(1, role.getLongID());
+            preparedStatement.setLong(2, guild.getLongID());
+
+            return preparedStatement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

@@ -15,8 +15,8 @@ public class Settings {
 
     private Properties settings;
     private Properties keys;
-    private static final String cfgPath = "settings.properties";
-    private static final String keysPath = "keys.properties";
+    private static final String cfgPath = "src/main/resources/settings.properties";
+    private static final String keysPath = "src/main/resources/keys.properties";
 
     private static final String CFG_VERSION = "0.5";
 
@@ -30,6 +30,7 @@ public class Settings {
         KEYS.add("discord_key");
         KEYS.add("weather_key");
         KEYS.add("translate_key");
+        KEYS.add("support_server_key");
 
         CFG.put("thunder_chat_prefix", ">");
         CFG.put("thunder_weather_service", "OpenWeatherMap");
@@ -89,7 +90,7 @@ public class Settings {
         }
     }
 
-    public String getApiKey (String type) { return this.keys.getProperty(type).trim(); }
+    public String getKey(String type) { return this.keys.getProperty(type).trim(); }
 
     public String getOne (String key) {
         return this.settings.get(key).toString();

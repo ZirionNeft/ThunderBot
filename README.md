@@ -5,8 +5,9 @@ A new open source bot for [Discord](https://discordapp.com/) with useful user fu
 More information, new features, and the site will be developed in the future.
 
 ## Tasks
+- [x] Bot Configuration for each guild
 - [ ] Server stats
-- [ ] User profiles - Levels
+- [ ] User profiles, Levels
 - [ ] Global economy, Currency
 - [ ] Guild Notes, Events
 <br>...And some fun features!
@@ -22,9 +23,12 @@ Use | Arguments | Description
 --- | --------- | -----------
 help | [cmd name] | Shows commands list or help on the command specified in the argument
 weather, wr | [City name]<br><br> set "City" [Broadcast time]<br><br> time [Broadcast time]  | Shows weather information
-translate, tr | [lang]<br><br>list "lang" | Translate the specified text  
+translate, tr | [lang]<br><br>list "lang" | Translate the specified text
+set | *see `Guild settings`* | Guild settings 
 
 ## Configuration
-soon
+### Bot config
+File ```settings.properties```
 
+### Guild settings
 

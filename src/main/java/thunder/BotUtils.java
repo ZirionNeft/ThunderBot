@@ -7,7 +7,9 @@ import org.json.simple.parser.ParseException;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
+import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RequestBuffer;
 
@@ -18,6 +20,7 @@ import java.math.RoundingMode;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
+import java.util.List;
 
 public class BotUtils {
     static Logger logger = Logger.getLogger("BotUtils.class");
@@ -51,6 +54,19 @@ public class BotUtils {
         RequestBuffer.request(() -> {
             try {
                 channel.sendMessage(embedObject);
+            } catch (DiscordException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public static void sendNSFWMessage(IChannel channel, String message) {
+        RequestBuffer.request(() -> {
+            try {
+                if (channel.isNSFW())
+                    channel.sendMessage(message);
+                else
+                    channel.sendMessage("*This message contains NSFW-content, which is allowed only in NSFW-channels*");
             } catch (DiscordException e) {
                 e.printStackTrace();
             }

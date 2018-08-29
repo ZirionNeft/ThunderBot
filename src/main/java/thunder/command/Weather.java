@@ -8,7 +8,6 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 import thunder.BotUtils;
-import thunder.Command;
 import thunder.Database;
 import thunder.Thunder;
 
@@ -32,7 +31,7 @@ public class Weather {
             if (args.isEmpty()) {
                 if (row == null) {
                     BotUtils.sendMessage(event.getChannel(), ":information_source: You are not provided details about your location.\n" +
-                            "**How to:**```>weather set 'city' ['HH:mm']```");
+                            "**How to:** `weather set 'city' ['HH:mm']`");
                 } else {
                     EmbedObject embedObject = embedWeatherBuilder(row);
                     BotUtils.sendMessage(event.getChannel(), embedObject);
@@ -41,30 +40,30 @@ public class Weather {
 
             else if (args.get(0).equals("time")) {
                 if (args.size() != 2) {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** ```>weather time 'time'" +
-                            "\n* time - Time to send to PM in format HH:mm; -1 to disable feature```");
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: *Usage:* `weather time 'time'`" +
+                            "\n* time - Time to send to PM in format HH:mm; -1 to disable feature");
                 } else {
                     Matcher matcher = Pattern.compile("^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$").matcher(args.get(1));
                     if (matcher.find() || args.get(1).equals("-1")) {
                         if (row != null) {
                             Database.updateWeatherRow(event.getAuthor(), args.get(1));
-                            BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: **Your weather settings successful updated!**");
+                            BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: Your weather settings successful updated!");
                         } else {
                             BotUtils.sendMessage(event.getChannel(), ":information_source: You are not provided details about your location.\n" +
-                                    "**How to:**```>weather set 'city' ['hh:mm']```");
+                                    "**How to:** `weather set 'city' ['hh:mm']`");
                         }
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** ```>weather time 'time'" +
-                                "\n* time - Time(UTC) to send to PM in format HH:mm; -1 to disable feature```");
+                        BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `weather time 'time'`" +
+                                "\n* time - Time(UTC) to send to PM in format HH:mm; -1 to disable feature");
                     }
                 }
             }
 
             else if (args.get(0).equals("set")) {
                 if (args.size() != 2 && args.size() != 3) {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** ```>weather set 'city' ['time']" +
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `weather set 'city' ['time']`" +
                             "\n* city - City for which the weather is needed" +
-                            "\n* time - (Optional) Time(UTC) to send to PM in format hh:mm; -1 to disable feature```");
+                            "\n* time - (Optional) Time(UTC) to send to PM in format hh:mm; -1 to disable feature`");
                 } else if (args.size() == 3) {
                     Matcher matcher = Pattern.compile("^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$").matcher(args.get(2));
                     if (matcher.find() || args.get(2).equals("-1")) {
@@ -74,11 +73,11 @@ public class Weather {
                             Database.addWeatherRow(event.getAuthor(), args.get(1), args.get(2));
                         }
 
-                        BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: **Your weather settings successful updated!**");
+                        BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: Your weather settings successful updated!");
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** ```>weather set 'city' ['time']" +
+                        BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `weather set 'city' ['time']`" +
                                 "\n* city - City for which the weather is needed" +
-                                "\n* time - (Optional) Time(UTC) to send to PM in format HH:mm; -1 to disable feature```");
+                                "\n* time - (Optional) Time(UTC) to send to PM in format HH:mm; -1 to disable feature");
                     }
 
                 } else {
@@ -87,16 +86,12 @@ public class Weather {
                     else
                         Database.addWeatherRow(event.getAuthor(), args.get(1), "-1");
 
-                    BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: **Your weather settings successful updated!**");
+                    BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: Your weather settings successful updated!");
                 }
             }
 
             else if (args.get(0).equals("help")) {
-                BotUtils.sendMessage(event.getChannel(), ":zap: **Weather commands** :zap:\n" +
-                        "```>weather```:arrow_up: Displays the weather for your settings\n" +
-                        "```>weather set 'city' ['HH:mm']```:arrow_up: Sets the city and time(UTC) of auto-display weather in PM\n" +
-                        "```>weather time 'HH:mm'```:arrow_up: Change or set time(UTC) of PM weather broadcast. -1 to disable feature" +
-                        "```>weather 'city'```:arrow_up: Displays the weather in this city\n");
+                help(event);
             }
 
             else if (args.size() == 1) {
@@ -110,13 +105,21 @@ public class Weather {
         }
     }
 
+    public static void help(MessageReceivedEvent event) {
+        BotUtils.sendMessage(event.getChannel(), ":zap: **Weather commands** :zap:\n" +
+                "`weather` - Displays the weather by your city\n" +
+                "`weather set 'city' ['HH:mm']` - Sets the city and time(UTC) of auto-display weather in PM\n" +
+                "`weather time 'HH:mm'` - Change or set time(UTC) of PM weather broadcast. -1 to disable feature\n" +
+                "`weather 'city'` - Displays the weather in this city\n");
+    }
+
     public static EmbedObject embedWeatherBuilder(List<String> row) throws IOException,ParseException {
         EmbedObject result = null;
 
         String s = Thunder.getSettingsInstance().getOne("thunder_weather_service");
         JSONObject data;
         if (s.equals("OpenWeatherMap")) {
-            data = BotUtils.HTTPQuery("http://api.openweathermap.org/data/2.5/weather?q=" + row.get(0) + "&appid=" + Thunder.getSettingsInstance().getApiKey("weather_key"));
+            data = BotUtils.HTTPQuery("http://api.openweathermap.org/data/2.5/weather?q=" + row.get(0) + "&appid=" + Thunder.getSettingsInstance().getKey("weather_key"));
             JSONArray weather = (JSONArray) data.get("weather");
             JSONObject wmain = (JSONObject) data.get("main");
             JSONObject country = (JSONObject) data.get("sys");
