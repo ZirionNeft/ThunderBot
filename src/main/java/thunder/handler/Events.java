@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.logging.Logger;
 
 public class Events {
+    private static final int PRESENCE_PERIOD = 7; // in minutes
+
     private int presenceQueue = 0;
     static Logger logger = Logger.getLogger("Events.class");
 
@@ -44,7 +46,7 @@ public class Events {
                 if (presenceQueue >= phrases.size())
                     presenceQueue = 0;
             }
-        }, 500, 5*60*1000);
+        }, 500, PRESENCE_PERIOD*60*1000);
 
         weatherSendingTimer.schedule(new TimerTask() {
             @Override

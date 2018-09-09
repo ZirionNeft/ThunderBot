@@ -44,7 +44,7 @@ public class Database {
             statement.setString(1, Long.toString(user_id.getLongID()));
             statement.setString(2, city);
             statement.setString(3, time);
-            statement.execute();
+            statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -131,7 +131,7 @@ public class Database {
             if (!rs.next()) {
                 PreparedStatement insert = c.prepareStatement("INSERT INTO thunder_guilds_config(`guild_id`) VALUES(?)");
                 insert.setObject(1, Long.toString(guild_id));
-                insert.execute();
+                insert.executeUpdate();
             }
         }catch (SQLException e) {
             e.printStackTrace();
@@ -146,6 +146,32 @@ public class Database {
             update.setObject(2, Long.toString(guild_id));
 
             return update.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean updateGuildManager(IGuild guild, IUser user) {
+        try (Connection c = connect()) {
+            PreparedStatement insert = c.prepareStatement("INSERT IGNORE INTO thunder_guilds_managers(`guild_id`,`user_id`) VALUES(?, ?)");
+            insert.setLong(1, guild.getLongID());
+            insert.setLong(2, user.getLongID());
+
+            return insert.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean removeGuildManager(IGuild guild, IUser user) {
+        try (Connection c = connect()) {
+            PreparedStatement delete = c.prepareStatement("DELETE FROM thunder_guilds_managers WHERE guild_id=? AND user_id=?");
+            delete.setLong(1, guild.getLongID());
+            delete.setLong(2, user.getLongID());
+
+            return delete.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -185,7 +211,10 @@ public class Database {
     public static boolean updateGuildManageRole(IGuild guild, IRole role) {
         try (Connection c = connect()) {
             PreparedStatement preparedStatement = c.prepareStatement("UPDATE thunder_guilds_config SET manage_role=? WHERE guild_id=?");
-            preparedStatement.setLong(1, role.getLongID());
+            if (role != null)
+                preparedStatement.setLong(1, role.getLongID());
+            else
+                preparedStatement.setString(1, "");
             preparedStatement.setLong(2, guild.getLongID());
 
             return preparedStatement.executeUpdate() > 0;

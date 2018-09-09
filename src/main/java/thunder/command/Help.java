@@ -2,13 +2,12 @@ package thunder.command;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import thunder.BotUtils;
-import thunder.Command;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class Help {
-    private static HashMap<String, thunder.Help> helpCommands = new HashMap<>();
+    private static HashMap<String, thunder.handler.obj.Help> helpCommands = new HashMap<>();
     static {
         helpCommands.put("help", Help::help);
         helpCommands.put("weather", Weather::help);

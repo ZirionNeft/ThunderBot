@@ -2,22 +2,26 @@ package thunder.handler;
 
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
-import thunder.BotUtils;
-import thunder.Command;
+import thunder.handler.obj.Command;
 import thunder.Database;
 import thunder.Thunder;
 import thunder.command.*;
 import thunder.command.Set;
+import thunder.handler.obj.CommandStamp;
+import thunder.handler.obj.CommandState;
 
 import java.util.*;
 import java.util.logging.Logger;
+
+import static thunder.handler.obj.CommandState.FREE;
 
 public class Commands {
     static private String PREFIX = Thunder.getSettingsInstance().getOne("thunder_chat_prefix");
     static private HashMap<Long, String> PREFIXES = Database.getGuildPrefixes();
     static Logger logger = Logger.getLogger("Commands.class");
+
+    private static HashMap<IUser, CommandStamp> usersCommandStamp = new HashMap<>();
 
     private static HashMap<String, Command> commands = new HashMap<>();
 
@@ -39,12 +43,27 @@ public class Commands {
         try {
             String command[] = event.getMessage().getContent().split(" ");
             long guildId = event.getGuild().getLongID();
+            IUser author = event.getAuthor();
 
             if (event.getAuthor().isBot())
                 return;
 
             if (command.length == 0)
                 return;
+
+            if (!getState(author).equals(FREE)) {
+                switch (getState(author)) {
+                    case ACCEPT:
+                        if (event.getMessage().getContent().equals("y")) {
+
+                        }
+                        usersCommandStamp.remove(author);
+                        break;
+                    case TRANSLATE:
+                        break;
+                }
+                return;
+            }
 
             List<String> argsList;
             String cmd;
@@ -80,6 +99,20 @@ public class Commands {
             e.printStackTrace();
         }
 
+    }
+
+    private static CommandState getState(IUser user) {
+        if (usersCommandStamp.containsKey(user))
+            return usersCommandStamp.get(user).getState();
+        return FREE;
+    }
+
+    public static boolean addCommandStamp(IUser user, CommandStamp stamp) {
+        if (!usersCommandStamp.containsKey(user)) {
+            usersCommandStamp.put(user, stamp);
+            return true;
+        }
+        return false;
     }
 
     public static void updateGuildsPrefixes() {

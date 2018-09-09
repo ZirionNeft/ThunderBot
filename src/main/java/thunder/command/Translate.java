@@ -81,9 +81,9 @@ public class Translate {
             if (code.equals("200")) {
                 String[] l = trQuery.get("lang").toString().split("-");
 
-                String outMsg = "Original text from **[" + l[0].toUpperCase() + "]**: ```" + msg + "```\n";
-                outMsg += "Translated to **[" + l[1].toUpperCase() + "]**: ```";
-                outMsg += ((JSONArray)trQuery.get("text")).get(0) + "```\nTranslated by " + provider + " - https://translate.yandex.com/";
+                String outMsg = "Original text from **[" + l[0].toUpperCase() + "]**: ```" + msg + "```\n" +
+                "Translated to **[" + l[1].toUpperCase() + "]**: ```" +
+                ((JSONArray)trQuery.get("text")).get(0) + "```\nTranslated by " + provider + " - https://translate.yandex.com/";
 
                 BotUtils.sendMessage(event.getChannel(), outMsg);
             } else {

@@ -2,15 +2,13 @@ package thunder.command;
 
 import org.apache.log4j.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IRole;
-import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.handle.obj.Permissions;
+import sx.blah.discord.handle.obj.*;
 import thunder.BotUtils;
 import thunder.Database;
 import thunder.handler.Commands;
 
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 
 public class Set {
@@ -54,20 +52,15 @@ public class Set {
             else if (args.get(0).equals("role")) {
                 if (args.size() == 2) {
                     List<IRole> roles = event.getMessage().getRoleMentions();
-                    if (!roles.isEmpty()) {
-                        if(Database.updateGuildManageRole(event.getGuild(), roles.get(0))) {
-                            BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: **Guild settings successful updated!**");
-                        } else {
-                            BotUtils.sendMessage(event.getChannel(), ":frowning2: Sorry, but something went wrong... Try later!");
-                        }
+
+                    if (args.get(1).equals("0")) {
+                        sendStatusMessage(event.getChannel(), Database.updateGuildManageRole(event.getGuild(), null));
+                    } else if (!roles.isEmpty()) {
+                        sendStatusMessage(event.getChannel(), Database.updateGuildManageRole(event.getGuild(), roles.get(0)));
                     } else if(!event.getGuild().getRolesByName(args.get(1)).isEmpty()) {
-                        if(Database.updateGuildManageRole(event.getGuild(), event.getGuild().getRolesByName(args.get(1)).get(0))) {
-                            BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: **Guild settings successful updated!**");
-                        } else {
-                            BotUtils.sendMessage(event.getChannel(), ":frowning2: Sorry, but something went wrong... Try later!");
-                        }
+                        sendStatusMessage(event.getChannel(), Database.updateGuildManageRole(event.getGuild(), event.getGuild().getRolesByName(args.get(1)).get(0)));
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set role 'role'`");
+                        BotUtils.sendMessage(event.getChannel(), "Role not found");
                     }
                 } else {
                     BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set role 'role'`");
@@ -75,7 +68,37 @@ public class Set {
             }
 
             else if (args.get(0).equals("manager")) {
+                if (args.size() == 2) {
+                    List<IUser> users = event.getMessage().getMentions();
+                    if (!users.isEmpty()) {
+                        sendStatusMessage(event.getChannel(), Database.updateGuildManager(event.getGuild(), users.get(0)));
+                    } else if(!event.getGuild().getUsersByName(args.get(1)).isEmpty()) {
+                        sendStatusMessage(event.getChannel(), Database.updateGuildManager(event.getGuild(), event.getGuild().getUsersByName(args.get(1)).get(0)));
+                    } else {
+                        BotUtils.sendMessage(event.getChannel(), "User not found");
+                    }
+                } else {
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set manager 'name_or_mention'`");
+                }
+            }
 
+            else if (args.get(0).equals("rmmanager")) {
+                if (args.size() == 2) {
+                    List<IUser> users = event.getMessage().getMentions();
+                    if (!users.isEmpty()) {
+                        sendStatusMessage(event.getChannel(), Database.removeGuildManager(event.getGuild(), users.get(0)));
+                    } else if(!event.getGuild().getUsersByName(args.get(1)).isEmpty()) {
+                        sendStatusMessage(event.getChannel(), Database.removeGuildManager(event.getGuild(), event.getGuild().getUsersByName(args.get(1)).get(0)));
+                    } else {
+                        BotUtils.sendMessage(event.getChannel(), "User not found");
+                    }
+                } else {
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set rmmanager 'name_or_mention'`");
+                }
+            }
+
+            else {
+                help(event);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,6 +111,14 @@ public class Set {
                 "`>set prefix 'prefix'` - Change commands prefix\n" +
                 "`>set manager 'user'` - Add a user to the bot manager list\n" +
                 "`>set rmmanager 'user'` - Remove a user from bot manager list");
+    }
+
+    private static void sendStatusMessage(IChannel channel, boolean status) {
+        if(status) {
+            BotUtils.sendMessage(channel, ":ballot_box_with_check: **Guild settings successful updated!**");
+        } else {
+            BotUtils.sendMessage(channel, ":frowning2: Sorry, but something went wrong... Try later!");
+        }
     }
 
     private static boolean checkRole(IUser user, IGuild guild) {
