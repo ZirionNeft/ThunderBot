@@ -14,5 +14,5 @@ public enum CommandState {
     /*
     * When user should do accept or deny the action
     * */
-    ACCEPT
+    ACCEPT_REMOVE
 }

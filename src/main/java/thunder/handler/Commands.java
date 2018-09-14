@@ -3,6 +3,7 @@ package thunder.handler;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IUser;
+import thunder.BotUtils;
 import thunder.handler.obj.Command;
 import thunder.Database;
 import thunder.Thunder;
@@ -53,13 +54,22 @@ public class Commands {
 
             if (!getState(author).equals(FREE)) {
                 switch (getState(author)) {
-                    case ACCEPT:
-                        if (event.getMessage().getContent().equals("y")) {
-
+                    case ACCEPT_REMOVE:
+                        if (usersCommandStamp.get(author).isValidCaptcha(event.getMessage().getContent().trim())) {
+                            Set.remove(event);
+                        } else {
+                            BotUtils.sendMessage(event.getChannel(), ":x: Wrong numbers, action has been aborted.");
                         }
                         usersCommandStamp.remove(author);
                         break;
                     case TRANSLATE:
+                        String msg = event.getMessage().toString();
+                        if (msg.equals("0")) {
+                            BotUtils.sendMessage(event.getChannel(),  "*Translate command skipped for " + author.getName() + "*");
+                        } else {
+                            Translate.showTranslate(event, usersCommandStamp.get(author).getData()[0], msg);
+                        }
+                        usersCommandStamp.remove(author);
                         break;
                 }
                 return;

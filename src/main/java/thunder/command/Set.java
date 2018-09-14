@@ -6,6 +6,8 @@ import sx.blah.discord.handle.obj.*;
 import thunder.BotUtils;
 import thunder.Database;
 import thunder.handler.Commands;
+import thunder.handler.obj.CommandStamp;
+import thunder.handler.obj.CommandState;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -45,7 +47,7 @@ public class Set {
                         BotUtils.sendMessage(event.getChannel(), ":information_source: Length of command prefix must be in range of 1 to 4 symbols");
                     }
                 } else {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set prefix 'prefix'`");
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `set prefix 'prefix'`");
                 }
             }
 
@@ -60,10 +62,10 @@ public class Set {
                     } else if(!event.getGuild().getRolesByName(args.get(1)).isEmpty()) {
                         sendStatusMessage(event.getChannel(), Database.updateGuildManageRole(event.getGuild(), event.getGuild().getRolesByName(args.get(1)).get(0)));
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), "Role not found");
+                        BotUtils.sendMessage(event.getChannel(), ":question: Role not found");
                     }
                 } else {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set role 'role'`");
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `set role 'role'`");
                 }
             }
 
@@ -75,10 +77,10 @@ public class Set {
                     } else if(!event.getGuild().getUsersByName(args.get(1)).isEmpty()) {
                         sendStatusMessage(event.getChannel(), Database.updateGuildManager(event.getGuild(), event.getGuild().getUsersByName(args.get(1)).get(0)));
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), "User not found");
+                        BotUtils.sendMessage(event.getChannel(), ":question: User not found");
                     }
                 } else {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set manager 'name_or_mention'`");
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `set manager 'name_or_mention'`");
                 }
             }
 
@@ -86,14 +88,30 @@ public class Set {
                 if (args.size() == 2) {
                     List<IUser> users = event.getMessage().getMentions();
                     if (!users.isEmpty()) {
-                        sendStatusMessage(event.getChannel(), Database.removeGuildManager(event.getGuild(), users.get(0)));
+                        if (!users.get(0).equals(author))
+                            sendStatusMessage(event.getChannel(), Database.removeGuildManager(event.getGuild(), users.get(0)));
+                        else {
+                            CommandStamp commandStamp = new CommandStamp(event, CommandState.ACCEPT_REMOVE);
+                            commandStamp.generateCaptcha();
+                            Commands.addCommandStamp(author, commandStamp);
+
+                            BotUtils.sendMessage(event.getChannel(), "**Please, accept the action: Enter numbers under this message.**\n"+commandStamp.getFormattedCaptcha());
+                        }
                     } else if(!event.getGuild().getUsersByName(args.get(1)).isEmpty()) {
-                        sendStatusMessage(event.getChannel(), Database.removeGuildManager(event.getGuild(), event.getGuild().getUsersByName(args.get(1)).get(0)));
+                        if (!event.getGuild().getUsersByName(args.get(1)).get(0).equals(author))
+                            sendStatusMessage(event.getChannel(), Database.removeGuildManager(event.getGuild(), event.getGuild().getUsersByName(args.get(1)).get(0)));
+                        else {
+                            CommandStamp commandStamp = new CommandStamp(event, CommandState.ACCEPT_REMOVE);
+                            commandStamp.generateCaptcha();
+                            Commands.addCommandStamp(author, commandStamp);
+
+                            BotUtils.sendMessage(event.getChannel(), "**Please, accept the action: Enter this numbers in next message.**\n"+commandStamp.getFormattedCaptcha());
+                        }
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), "User not found");
+                        BotUtils.sendMessage(event.getChannel(), ":question: User not found");
                     }
                 } else {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `>set rmmanager 'name_or_mention'`");
+                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `set rmmanager 'name_or_mention'`");
                 }
             }
 
@@ -107,10 +125,14 @@ public class Set {
 
     public static void help(MessageReceivedEvent event) {
         BotUtils.sendMessage(event.getChannel(), ":gear: **Settings commands** :gear:\n" +
-                "`>set role 'role'` - Change or set bot manager role; Specify 0 as a role to remove\n" +
-                "`>set prefix 'prefix'` - Change commands prefix\n" +
-                "`>set manager 'user'` - Add a user to the bot manager list\n" +
-                "`>set rmmanager 'user'` - Remove a user from bot manager list");
+                "`set role 'role'` - Change or set bot manager role; Specify 0 as a role to remove\n" +
+                "`set prefix 'prefix'` - Change commands prefix\n" +
+                "`set manager 'user'` - Add a user to the bot manager list\n" +
+                "`set rmmanager 'user'` - Remove a user from bot manager list");
+    }
+
+    public static void remove(MessageReceivedEvent event) {
+        sendStatusMessage(event.getChannel(), Database.removeGuildManager(event.getGuild(), event.getAuthor()));
     }
 
     private static void sendStatusMessage(IChannel channel, boolean status) {

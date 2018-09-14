@@ -25,8 +25,6 @@ public class Events {
     private int presenceQueue = 0;
     static Logger logger = Logger.getLogger("Events.class");
 
-    private static HashMap<IUser, String> watchList = new HashMap<>();
-
     @EventSubscriber
     public void onThunderReady(ReadyEvent event) {
         Timer presenceTimer = new Timer();
@@ -73,40 +71,7 @@ public class Events {
     }
 
     @EventSubscriber
-    public void onTranslateMessageReceived(MessageReceivedEvent event) {
-        IUser author = event.getAuthor();
-        if (watchList.containsKey(author)) {
-            String msg = event.getMessage().toString();
-            if (msg.contains(Commands.getGuildPrefixes().get(event.getGuild().getLongID()) + "tr"))
-                return;
-            if (msg.equals("0")) {
-                watchList.remove(author);
-                BotUtils.sendMessage(event.getChannel(),  "*Translate command skipped for " + author.getName() + "*");
-                return;
-            }
-            String lang = watchList.get(author);
-            Translate.showTranslate(event, lang, msg);
-            watchList.remove(author);
-        }
-    }
-
-    @EventSubscriber
     public void onNewGuild(GuildCreateEvent event) {
         Database.insertGuildConfigRow(event.getGuild());
-    }
-
-    public static boolean setTranslateUserWatch(IUser user, String lang) {
-        if (watchList.containsKey(user))
-            return false;
-        watchList.put(user, lang);
-        return true;
-    }
-
-    public static boolean removeTranslateUserWatch(IUser user) {
-        if (watchList.containsKey(user)) {
-            watchList.remove(user);
-            return true;
-        }
-        return false;
     }
 }

@@ -7,7 +7,10 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.obj.IUser;
 import thunder.BotUtils;
 import thunder.Thunder;
+import thunder.handler.Commands;
 import thunder.handler.Events;
+import thunder.handler.obj.CommandStamp;
+import thunder.handler.obj.CommandState;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -52,7 +55,10 @@ public class Translate {
 
             else if (args.size() == 1) {
                 if (args.get(0).length() == 2 || (args.get(0).length() == 5 && args.get(0).charAt(2) == '-')) {
-                    if (Events.setTranslateUserWatch(event.getAuthor(), args.get(0))) {
+                    String[] data = {args.get(0)};
+                    CommandStamp commandStamp = new CommandStamp(event, CommandState.TRANSLATE, data);
+
+                    if (Commands.addCommandStamp(event.getAuthor(), commandStamp)) {
                         BotUtils.sendMessage(event.getChannel(), ":arrow_down: Enter text to be translated in the next message.");
                     } else {
                         BotUtils.sendMessage(event.getChannel(), ":warning: User with that name is already use this command!");
@@ -92,14 +98,13 @@ public class Translate {
         } catch (ParseException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            Events.removeTranslateUserWatch(event.getAuthor());
             String eMsg = e.getMessage();
             int pos = eMsg.lastIndexOf("response code: ");
             if (pos != -1) {
                 int code = Integer.parseInt(eMsg.substring(pos + "response code: ".length(), pos + "response code: ".length() + 3));
                 switch (code) {
                     case 400:
-                        BotUtils.sendMessage(event.getChannel(), "Error or wrong language code! Get more info `tr help`");
+                        BotUtils.sendMessage(event.getChannel(), ":no_entry: Error or wrong language code! Get more info `tr help`");
                         break;
                 }
             } else {
