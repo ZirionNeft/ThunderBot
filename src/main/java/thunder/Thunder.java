@@ -6,6 +6,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import sx.blah.discord.api.IDiscordClient;
+import thunder.handler.Calculations;
 import thunder.handler.Commands;
 import thunder.handler.Events;
 
@@ -33,6 +34,7 @@ public class Thunder {
 
         client.getDispatcher().registerListener(new Commands());
         client.getDispatcher().registerListener(new Events());
+        client.getDispatcher().registerListener(new Calculations());
 
         client.login();
     }

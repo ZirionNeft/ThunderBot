@@ -14,7 +14,7 @@ public class Help {
         helpCommands.put("wr", Weather::help);
         helpCommands.put("tr", Translate::help);
         helpCommands.put("translate", Translate::help);
-        helpCommands.put("stats", Stats::help);
+        helpCommands.put("stats", Info::help);
         helpCommands.put("set", Set::help);
     }
 

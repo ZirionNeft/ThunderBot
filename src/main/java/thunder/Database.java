@@ -4,10 +4,8 @@ import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
 
-import javax.xml.transform.Result;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class Database {
@@ -26,10 +24,10 @@ public class Database {
             Statement statement = c.createStatement();
             statement.setQueryTimeout(30);
 
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_weather` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, discord_user_id CHAR(64) NOT NULL, city CHAR(128) NOT NULL, display_time CHAR(128) NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_weather` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, discord_user_id CHAR(64) NOT NULL, city CHAR(128) NOT NULL, display_time CHAR(128) NOT NULL, UNIQUE(discord_user_id))");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_emoji_usages` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, emoji_name CHAR(64) NOT NULL, counter INT DEFAULT 0 NOT NULL, discord_server CHAR(128) NOT NULL)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_stats` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, guild_id CHAR(64) NOT NULL, users_summary INT DEFAULT 0 NOT NULL, messages INT DEFAULT 0 NOT NULL)");
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_users` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, discord_user_id CHAR(64) NOT NULL, exp INTEGER DEFAULT 0 NOT NULL, money INT DEFAULT 200 NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_users` (discord_user_id CHAR(64) PRIMARY KEY NOT NULL, exp INTEGER DEFAULT 0, money INT DEFAULT 200, is_donator BOOLEAN DEFAULT 0)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_guilds_config` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, guild_id CHAR(64) NOT NULL, prefix CHAR(4) DEFAULT '>' NOT NULL, manage_role CHAR(64) DEFAULT '' NOT NULL)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS `thunder_guilds_managers` (id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, guild_id CHAR(64) NOT NULL, user_id CHAR(64) NOT NULL)");
         } catch (SQLException e) {
@@ -122,7 +120,7 @@ public class Database {
         return prefixes;
     }
 
-    public static void insertGuildConfigRow(IGuild guild) {
+    public static boolean insertGuildConfigRow(IGuild guild) {
         try (Connection c = connect()) {
             long guild_id = guild.getLongID();
             PreparedStatement preparedStatement = c.prepareStatement("SELECT id FROM thunder_guilds_config WHERE guild_id=?");
@@ -132,10 +130,13 @@ public class Database {
                 PreparedStatement insert = c.prepareStatement("INSERT INTO thunder_guilds_config(`guild_id`) VALUES(?)");
                 insert.setObject(1, Long.toString(guild_id));
                 insert.executeUpdate();
+                return true;
             }
-        }catch (SQLException e) {
+            return false;
+        } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     public static boolean updateGuildPrefix(IGuild guild, String prefix) {
@@ -222,5 +223,42 @@ public class Database {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static int addUsersRows(List<IUser> users) {
+        try (Connection c = connect()) {
+            StringBuilder q = new StringBuilder();
+            for (int i = 0; i < users.size(); i++)
+                q.append("(?),");
+            q.deleteCharAt(q.lastIndexOf(","));
+
+            PreparedStatement insertion = c.prepareStatement("INSERT IGNORE INTO thunder_users(`discord_user_id`) VALUES"+q.toString());
+
+            ListIterator<IUser> iterator = users.listIterator();
+            while(iterator.hasNext()) {
+                insertion.setLong(iterator.nextIndex()+1, iterator.next().getLongID());
+            }
+
+            return insertion.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public static Integer getUserCash(IUser user) {
+        try (Connection c = connect()) {
+            PreparedStatement preparedStatement = c.prepareStatement("SELECT money FROM thunder_users WHERE discord_user_id=? LIMIT 1");
+            preparedStatement.setLong(1, user.getLongID());
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("money");
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -4,11 +4,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IUser;
 import thunder.BotUtils;
 import thunder.Thunder;
 import thunder.handler.Commands;
-import thunder.handler.Events;
 import thunder.handler.obj.CommandStamp;
 import thunder.handler.obj.CommandState;
 

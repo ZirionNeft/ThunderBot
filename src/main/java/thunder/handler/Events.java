@@ -1,18 +1,19 @@
 package thunder.handler;
 
 import org.json.simple.parser.ParseException;
-import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.handle.obj.ActivityType;
+import sx.blah.discord.handle.obj.IPrivateChannel;
+import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.StatusType;
 import thunder.BotUtils;
 import thunder.Database;
 import thunder.Thunder;
-import thunder.command.Translate;
 import thunder.command.Weather;
+import thunder.handler.obj.Command;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -66,12 +67,30 @@ public class Events {
                         e.printStackTrace();
                     }
                 }
+
+                Date date = new Date();
+                ArrayList<IUser> toRemove = new ArrayList<>();
+                Commands.getCommandStamps().forEach((user, stamp) -> {
+                    if (date.getTime() >= stamp.getDate().getTime()) {
+                        toRemove.add(user);
+                        logger.info(user.getName() + " will be removed from StampList");
+                    }
+                });
+                Commands.removeCommandStamp(toRemove);
             }
         }, 0, 60*1000);
     }
 
     @EventSubscriber
     public void onNewGuild(GuildCreateEvent event) {
-        Database.insertGuildConfigRow(event.getGuild());
+        if(Database.insertGuildConfigRow(event.getGuild()))
+            logger.info(event.getGuild().getName() + ": Guild row has been created in database!");
+
+        List<IUser> checkList = event.getGuild().getUsers();
+        checkList.removeIf(IUser::isBot);
+
+        int rowsCount = Database.addUsersRows(checkList);
+        if (rowsCount > 0)
+            logger.info(event.getGuild().getName() + ": " + rowsCount + " new user rows has been added in database!");
     }
 }

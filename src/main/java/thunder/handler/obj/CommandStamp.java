@@ -1,15 +1,16 @@
 package thunder.handler.obj;
 
-import com.sun.istack.internal.NotNull;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import thunder.BotUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.Random;
 
 public class CommandStamp {
+    private static final int LIFETIME = 3; // Stamp lifetime in minutes
+
     private static ArrayList<String> emojiNumbers = new ArrayList<>();
+
     static {
         emojiNumbers.add(":zero:");
         emojiNumbers.add(":one:");
@@ -27,16 +28,28 @@ public class CommandStamp {
     private CommandState state;
     private String[] data;
     private Integer captcha;
+    private Date date;
 
     public CommandStamp(MessageReceivedEvent event, CommandState state, String[] data) {
         this.event = event;
         this.state = state;
         this.data = data.clone();
+        this.date = new Date();
+        this.date.setTime(this.date.getTime() + (LIFETIME * 1000 * 60));
     }
 
     public CommandStamp(MessageReceivedEvent event, CommandState state) {
         this.event = event;
         this.state = state;
+        this.date = new Date();
+        this.date.setTime(this.date.getTime() + (LIFETIME * 1000 * 60));
+    }
+
+    public CommandStamp(MessageReceivedEvent event, CommandState state, int lifetime) {
+        this.event = event;
+        this.state = state;
+        this.date = new Date();
+        this.date.setTime(this.date.getTime() + (lifetime * 1000 * 60));
     }
 
     public CommandState getState() {
@@ -49,6 +62,10 @@ public class CommandStamp {
 
     public String[] getData() {
         return this.data;
+    }
+
+    public Date getDate() {
+        return this.date;
     }
 
     public void generateCaptcha() {

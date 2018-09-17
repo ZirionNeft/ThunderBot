@@ -10,7 +10,6 @@ import thunder.handler.obj.CommandStamp;
 import thunder.handler.obj.CommandState;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 
 public class Set {
