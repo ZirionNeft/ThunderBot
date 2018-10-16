@@ -1,10 +1,9 @@
-package thunder.command;
+package zirionneft.thunder.command;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.util.EmbedBuilder;
-import thunder.*;
+import zirionneft.thunder.*;
 
-import javax.xml.crypto.Data;
 import java.util.HashMap;
 import java.util.List;
 

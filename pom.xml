@@ -4,7 +4,7 @@
 
     <groupId>zirionneft</groupId>
     <artifactId>Thunder</artifactId>
-    <version>b0.5</version>
+    <version>b0.7</version>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -43,7 +43,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.46</version>
+            <version>8.0.12</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-model -->
         <dependency>
@@ -51,6 +51,13 @@
             <artifactId>maven-model</artifactId>
             <version>3.5.4</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.3.6.Final</version>
+        </dependency>
+
 
     </dependencies>
 
@@ -70,7 +77,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>thunder.Thunder</mainClass>
+                            <mainClass>zirionneft.thunder.Thunder</mainClass>
                         </manifest>
                     </archive>
                     <finalName>ThunderBot</finalName>

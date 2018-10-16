@@ -1,4 +1,4 @@
-package thunder;
+package zirionneft.thunder;
 
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -7,11 +7,10 @@ import org.json.simple.parser.ParseException;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RequestBuffer;
+import zirionneft.thunder.command.Set;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,7 +19,6 @@ import java.math.RoundingMode;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
-import java.util.List;
 
 public class BotUtils {
     static Logger logger = Logger.getLogger("BotUtils.class");
@@ -50,6 +48,26 @@ public class BotUtils {
         });
     }
 
+    public static void sendLocaleMessage(IChannel channel, String message) {
+        RequestBuffer.request(() -> {
+            try {
+                channel.sendMessage(Settings.getLocaleString(message));
+            } catch (DiscordException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public static void sendLocaleMessage(IChannel channel, String message, Object... args) {
+        RequestBuffer.request(() -> {
+            try {
+                channel.sendMessage(String.format(Settings.getLocaleString(message), args));
+            } catch (DiscordException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public static void sendMessage(IChannel channel, EmbedObject embedObject) {
         RequestBuffer.request(() -> {
             try {
@@ -66,7 +84,7 @@ public class BotUtils {
                 if (channel.isNSFW())
                     channel.sendMessage(message);
                 else
-                    channel.sendMessage("*This message contains NSFW-content, which is allowed only in NSFW-channels*");
+                    channel.sendMessage(Settings.getLocaleString("general_nsfw_content_error"));
             } catch (DiscordException e) {
                 e.printStackTrace();
             }
@@ -96,6 +114,7 @@ public class BotUtils {
         return (JSONObject) parser.parse(buffer.toString());
     }
 
+    @Deprecated
     public static String JSONSearch(JSONObject object, String valueOf) {
         String result = "";
 

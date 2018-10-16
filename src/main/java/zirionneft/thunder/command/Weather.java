@@ -1,4 +1,4 @@
-package thunder.command;
+package zirionneft.thunder.command;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -7,9 +7,9 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
-import thunder.BotUtils;
-import thunder.Database;
-import thunder.Thunder;
+import zirionneft.thunder.BotUtils;
+import zirionneft.thunder.Database;
+import zirionneft.thunder.Thunder;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -30,8 +30,7 @@ public class Weather {
         try {
             if (args.isEmpty()) {
                 if (row == null) {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: You are not provided details about your location.\n" +
-                            "**How to:** `weather set 'city' ['HH:mm']`");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "utils_weather_details_not_provided_error");
                 } else {
                     EmbedObject embedObject = embedWeatherBuilder(row);
                     BotUtils.sendMessage(event.getChannel(), embedObject);
@@ -40,21 +39,18 @@ public class Weather {
 
             else if (args.get(0).equals("time")) {
                 if (args.size() != 2) {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: *Usage:* `weather time 'time'`" +
-                            "\n* time - Time to send to PM in format HH:mm; -1 to disable feature");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage","`weather time 'time'`");
                 } else {
                     Matcher matcher = Pattern.compile("^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$").matcher(args.get(1));
                     if (matcher.find() || args.get(1).equals("-1")) {
                         if (row != null) {
                             Database.updateWeatherRow(event.getAuthor(), args.get(1));
-                            BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: Your weather settings successful updated!");
+                            BotUtils.sendLocaleMessage(event.getChannel(), "general_settings_successful","PM broadcast time");
                         } else {
-                            BotUtils.sendMessage(event.getChannel(), ":information_source: You are not provided details about your location.\n" +
-                                    "**How to:** `weather set 'city' ['hh:mm']`");
+                            BotUtils.sendLocaleMessage(event.getChannel(), "utils_weather_details_not_provided_error");
                         }
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `weather time 'time'`" +
-                                "\n* time - Time(UTC) to send to PM in format HH:mm; -1 to disable feature");
+                        BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage","`weather time 'time'`");
                     }
                 }
             }

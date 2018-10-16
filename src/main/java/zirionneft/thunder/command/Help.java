@@ -1,13 +1,13 @@
-package thunder.command;
+package zirionneft.thunder.command;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import thunder.BotUtils;
+import zirionneft.thunder.BotUtils;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class Help {
-    private static HashMap<String, thunder.handler.obj.Help> helpCommands = new HashMap<>();
+    private static HashMap<String, zirionneft.thunder.handler.obj.Help> helpCommands = new HashMap<>();
     static {
         helpCommands.put("help", Help::help);
         helpCommands.put("weather", Weather::help);
@@ -28,7 +28,7 @@ public class Help {
     public static void help(MessageReceivedEvent event) {
         BotUtils.sendMessage(event.getChannel(),
                 ":zap: **Commands List** :zap:\n\n" +
-                        "**Social** - `stats`\n" +
+                        "**Social** - `stats, coins`\n" +
                         "**Utils** - `weather, translate`\n" +
                         "**Manage** - `set`\n" +
                         "**Other** - `about, support, help`"

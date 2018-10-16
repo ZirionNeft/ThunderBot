@@ -1,4 +1,4 @@
-package thunder;
+package zirionneft.thunder;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
@@ -6,9 +6,9 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import sx.blah.discord.api.IDiscordClient;
-import thunder.handler.Calculations;
-import thunder.handler.Commands;
-import thunder.handler.Events;
+import zirionneft.thunder.handler.Calculations;
+import zirionneft.thunder.handler.Commands;
+import zirionneft.thunder.handler.Events;
 
 import java.io.File;
 import java.io.FileReader;
@@ -30,7 +30,11 @@ public class Thunder {
 
         logger.info("Weather API powered by " + settings.getOne("thunder_weather_service"));
 
-        client = BotUtils.getBotDiscordClient(settings.getKey("discord_key"));
+        if (settings.getKey("discord_test_key").isEmpty()) {
+            client = BotUtils.getBotDiscordClient(settings.getKey("discord_key"));
+        } else {
+            client = BotUtils.getBotDiscordClient(settings.getKey("discord_test_key"));
+        }
 
         client.getDispatcher().registerListener(new Commands());
         client.getDispatcher().registerListener(new Events());
@@ -57,7 +61,7 @@ public class Thunder {
                 model = reader.read(
                         new InputStreamReader(
                                 Thunder.class.getResourceAsStream(
-                                        "/META-INF/maven/Thunder/thunder/pom.xml"
+                                        "/META-INF/maven/Thunder/zirionneft.thunder/pom.xml"
                                 )
                         )
                 );

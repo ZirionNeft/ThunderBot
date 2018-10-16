@@ -1,17 +1,19 @@
-package thunder.command;
+package zirionneft.thunder.command;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import thunder.BotUtils;
-import thunder.Thunder;
-import thunder.handler.Commands;
-import thunder.handler.obj.CommandStamp;
-import thunder.handler.obj.CommandState;
+import zirionneft.thunder.BotUtils;
+import zirionneft.thunder.Settings;
+import zirionneft.thunder.Thunder;
+import zirionneft.thunder.handler.Commands;
+import zirionneft.thunder.handler.obj.CommandStamp;
+import zirionneft.thunder.handler.obj.CommandState;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -28,27 +30,18 @@ public class Translate {
 
             else if (args.get(0).equals("list")) {
                 if (args.size() != 2) {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `tr list 'lang'`" +
-                            "\n* lang - Language for which the list is needed");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage" ,"`tr list 'lang'`");
                 } else {
                     JSONObject list = BotUtils.HTTPQuery("https://translate.yandex.net/api/v1.5/tr.json/getLangs?key=" +
-                            Thunder.getSettingsInstance().getKey("translate_key") +
-                            "&ui=" + args.get(1));
+                            Thunder.getSettingsInstance().getKey("translate_key") + "&ui=" + args.get(1));
                     if (list.get("code") == null) {
-                        StringBuilder buffer = new StringBuilder("Supported languages for translate from **[" + args.get(1).toUpperCase() + "]**\n```");
-
+                        StringBuilder buffer = new StringBuilder();
                         ((JSONObject) list.get("langs")).forEach((key, value) -> {
                             buffer.append(value).append("[").append(key).append("], ");
                         });
-                        buffer.append("```");
-
-                        BotUtils.sendMessage(event.getChannel(), buffer.toString());
+                        BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_list", args.get(1).toUpperCase(), buffer.toString());
                     }
                 }
-            }
-
-            else if (args.get(0).equals("help")) {
-                help(event);
             }
 
             else if (args.size() == 1) {
@@ -57,13 +50,17 @@ public class Translate {
                     CommandStamp commandStamp = new CommandStamp(event, CommandState.TRANSLATE, data);
 
                     if (Commands.addCommandStamp(event.getAuthor(), commandStamp)) {
-                        BotUtils.sendMessage(event.getChannel(), ":arrow_down: Enter text to be translated in the next message.");
+                        BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_tip");
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), ":warning: User with that name is already use this command!");
+                        BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_already_using_error");
                     }
                 } else {
-                    BotUtils.sendMessage(event.getChannel(), "Wrong language code! Get more info `tr help`");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_wrong_code_error");
                 }
+            }
+
+            else if (args.get(0).equals("help")) {
+                help(event);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,9 +68,7 @@ public class Translate {
     }
 
     public static void help(MessageReceivedEvent event) {
-        BotUtils.sendMessage(event.getChannel(), ":zap: **Translate commands** :zap:\n" +
-                "`tr list 'lang'` - Shows an available translation language list\n" +
-                "`tr 'lang'` - Translation. Lang format: *en*(to) or *en-ru*(from-to)\n");
+        BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_help_message");
     }
 
     public static void showTranslate(MessageReceivedEvent event, String lang, String msg){
@@ -83,13 +78,8 @@ public class Translate {
 
             String code = trQuery.get("code").toString();
             if (code.equals("200")) {
-                String[] l = trQuery.get("lang").toString().split("-");
-
-                String outMsg = "Original text from **[" + l[0].toUpperCase() + "]**: ```" + msg + "```\n" +
-                "Translated to **[" + l[1].toUpperCase() + "]**: ```" +
-                ((JSONArray)trQuery.get("text")).get(0) + "```\nTranslated by " + provider + " - https://translate.yandex.com/";
-
-                BotUtils.sendMessage(event.getChannel(), outMsg);
+                String[] langs = trQuery.get("lang").toString().split("-");
+                BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_successful", langs[0].toUpperCase(), msg, langs[1].toUpperCase(), ((JSONArray)trQuery.get("text")).get(0), provider);
             } else {
                 logger.warning("Translate ERROR: code " + code + " - Visit API-provider site to get more info");
             }
@@ -102,7 +92,7 @@ public class Translate {
                 int code = Integer.parseInt(eMsg.substring(pos + "response code: ".length(), pos + "response code: ".length() + 3));
                 switch (code) {
                     case 400:
-                        BotUtils.sendMessage(event.getChannel(), ":no_entry: Error or wrong language code! Get more info `tr help`");
+                        BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_response_error");
                         break;
                 }
             } else {

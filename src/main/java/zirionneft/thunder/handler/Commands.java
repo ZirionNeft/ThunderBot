@@ -1,15 +1,15 @@
-package thunder.handler;
+package zirionneft.thunder.handler;
 
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IUser;
-import thunder.BotUtils;
-import thunder.Database;
-import thunder.Thunder;
-import thunder.command.*;
-import thunder.handler.obj.Command;
-import thunder.handler.obj.CommandStamp;
-import thunder.handler.obj.CommandState;
+import zirionneft.thunder.BotUtils;
+import zirionneft.thunder.Database;
+import zirionneft.thunder.Thunder;
+import zirionneft.thunder.command.*;
+import zirionneft.thunder.handler.obj.Command;
+import zirionneft.thunder.handler.obj.CommandStamp;
+import zirionneft.thunder.handler.obj.CommandState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static thunder.handler.obj.CommandState.FREE;
+import static zirionneft.thunder.handler.obj.CommandState.FREE;
 
 public class Commands {
     static private String PREFIX = Thunder.getSettingsInstance().getOne("thunder_chat_prefix");
@@ -38,8 +38,8 @@ public class Commands {
         commands.put("translate", Translate::run);
         commands.put("stats", Info::run);
         commands.put("set", Set::run);
-        commands.put("credits", Cash::run);
-        commands.put("cash", Cash::run);
+        commands.put("credits", Coins::run);
+        commands.put("coins", Coins::run);
     }
 
     @EventSubscriber
@@ -62,20 +62,37 @@ public class Commands {
                             if (stampList.get(author).isValidCaptcha(event.getMessage().getContent().trim())) {
                                 Set.remove(event);
                             } else {
-                                BotUtils.sendMessage(event.getChannel(), ":x: Wrong numbers, action has been aborted.");
+                                BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha_error");
                             }
-                            stampList.remove(author);
                             break;
+
                         case TRANSLATE:
                             String msg = event.getMessage().toString();
                             if (msg.equals("0")) {
-                                BotUtils.sendMessage(event.getChannel(), "*Translate command skipped for " + author.getName() + "*");
+                                BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_skip", author.getName());
                             } else {
                                 Translate.showTranslate(event, stampList.get(author).getData()[0], msg);
                             }
-                            stampList.remove(author);
+                            break;
+
+                        case COINS_TRANSFER:
+                            if (stampList.get(author).isValidCaptcha(event.getMessage().getContent().trim())) {
+                                if (Coins.transaction(
+                                        author,
+                                        stampList.get(author).getEvent().getMessage().getMentions().get(0),
+                                        Integer.parseInt(stampList.get(author).getData()[0])
+                                )) {
+                                    BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_transfer_success", Database.getUserCash(author));
+                                } else {
+                                    BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_not_enough_error");
+                                }
+                            } else {
+                                BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha_error");
+                            }
                             break;
                     }
+                    stampList.remove(author);
+
                     return;
                 }
             }
@@ -132,10 +149,6 @@ public class Commands {
             return true;
         }
         return false;
-    }
-
-    public static void removeCommandStamp(IUser user) {
-        stampList.remove(user);
     }
 
     public static void removeCommandStamp(ArrayList<IUser> users) {

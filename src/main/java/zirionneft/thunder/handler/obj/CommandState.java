@@ -1,4 +1,4 @@
-package thunder.handler.obj;
+package zirionneft.thunder.handler.obj;
 
 public enum CommandState {
     /*
@@ -14,5 +14,10 @@ public enum CommandState {
     /*
     * When user should do accept or deny the action
     * */
-    ACCEPT_REMOVE
+    ACCEPT_REMOVE,
+
+    /*
+    * When user initiate coins transfer
+    * */
+    COINS_TRANSFER
 }

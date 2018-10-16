@@ -1,8 +1,8 @@
-package thunder.command;
+package zirionneft.thunder.command;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import thunder.BotUtils;
-import thunder.Thunder;
+import zirionneft.thunder.BotUtils;
+import zirionneft.thunder.Thunder;
 
 import java.util.List;
 

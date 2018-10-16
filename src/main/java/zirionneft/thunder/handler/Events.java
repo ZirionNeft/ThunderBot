@@ -1,19 +1,19 @@
-package thunder.handler;
+package zirionneft.thunder.handler;
 
 import org.json.simple.parser.ParseException;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
+import sx.blah.discord.handle.impl.events.guild.member.UserJoinEvent;
 import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IPrivateChannel;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.StatusType;
-import thunder.BotUtils;
-import thunder.Database;
-import thunder.Thunder;
-import thunder.command.Weather;
-import thunder.handler.obj.Command;
+import zirionneft.thunder.BotUtils;
+import zirionneft.thunder.Database;
+import zirionneft.thunder.Thunder;
+import zirionneft.thunder.command.Weather;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -92,5 +92,16 @@ public class Events {
         int rowsCount = Database.addUsersRows(checkList);
         if (rowsCount > 0)
             logger.info(event.getGuild().getName() + ": " + rowsCount + " new user rows has been added in database!");
+    }
+
+    @EventSubscriber
+    public void onNewGuildMember(UserJoinEvent event) {
+        if (!event.getUser().isBot()) {
+            List<IUser> arrayList = new ArrayList<>();
+            arrayList.add(event.getUser());
+            int rowsCount = Database.addUsersRows(arrayList);
+            if (rowsCount > 0)
+                logger.info(event.getGuild().getName() + ": " + rowsCount + " new user rows has been added in database!");
+        }
     }
 }

@@ -1,4 +1,4 @@
-package thunder.command;
+package zirionneft.thunder.command;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 
