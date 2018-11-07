@@ -5,25 +5,29 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.obj.*;
 import zirionneft.thunder.BotUtils;
 import zirionneft.thunder.Database;
-import zirionneft.thunder.Settings;
+import zirionneft.thunder.database.entity.Guild;
+import zirionneft.thunder.database.entity.GuildManager;
+import zirionneft.thunder.database.service.GuildManagerService;
+import zirionneft.thunder.database.service.GuildService;
+import zirionneft.thunder.database.service.UserService;
 import zirionneft.thunder.handler.Commands;
 import zirionneft.thunder.handler.obj.CommandStamp;
 import zirionneft.thunder.handler.obj.CommandState;
 
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 public class Set {
     static Logger logger = Logger.getLogger("Set.java");
 
     public static void run(MessageReceivedEvent event, List<String> args) {
         IUser author = event.getAuthor();
+        IGuild guild = event.getGuild();
         EnumSet<Permissions> userPerms = author.getPermissionsForGuild(event.getGuild());
 
         if (!userPerms.contains(Permissions.MANAGE_SERVER) &&
             !userPerms.contains(Permissions.ADMINISTRATOR) &&
-            !Database.getGuildManagers(event.getGuild()).contains(author) &&
-            !checkRole(author, event.getGuild())
+            !GuildManagerService.isGuildManager(author.getLongID(), guild.getLongID()) &&
+            !checkRole(author, guild)
         ) {
             BotUtils.sendLocaleMessage(event.getChannel(), "general_user_permissions_error");
             return;
@@ -37,12 +41,9 @@ public class Set {
             else if (args.get(0).equals("prefix")) {
                 if (args.size() == 2) {
                     if (args.get(1).length() > 0 && args.get(1).length() < 5) {
-                        if(Database.updateGuildPrefix(event.getGuild(), args.get(1))) {
-                            Commands.updateGuildsPrefixes();
-                            BotUtils.sendLocaleMessage(event.getChannel(), "general_settings_successful", "Prefix");
-                        } else {
-                            BotUtils.sendLocaleMessage(event.getChannel(), "general_unknown_error");
-                        }
+                        Guild guildEntity = GuildService.getGuild(guild.getLongID());
+                        guildEntity.setBotPrefix(args.get(1));
+                        BotUtils.sendLocaleMessage(event.getChannel(), "general_settings_successful", "Prefix");
                     } else {
                         BotUtils.sendLocaleMessage(event.getChannel(), "manage_set_prefix_length_tip");
                     }
@@ -70,55 +71,51 @@ public class Set {
             }
 
             else if (args.get(0).equals("manager")) {
-                if (args.size() == 2) {
+                if (args.size() >= 2) {
                     List<IUser> users = event.getMessage().getMentions();
-                    if (users.size() == 1) {
-                        if (!users.get(0).isBot())
-                            sendStatusMessage(event.getChannel(), Database.updateGuildManager(event.getGuild(), users.get(0)), "Manager user");
-                        else
-                            BotUtils.sendLocaleMessage(event.getChannel(), Settings.getLocaleString("general_user_is_bot_error"));
-                    } else if(!event.getGuild().getUsersByName(args.get(1)).isEmpty()) {
-                        if (!event.getGuild().getUsersByName(args.get(1)).get(0).isBot())
-                            sendStatusMessage(event.getChannel(), Database.updateGuildManager(event.getGuild(), event.getGuild().getUsersByName(args.get(1)).get(0)), "Manager user");
-                        else
-                            BotUtils.sendLocaleMessage(event.getChannel(), "general_user_is_bot_error");
+                    if (users.size() >= 1) {
+                        for (IUser u : users) {
+                            if (!u.isBot()) {
+                                GuildManager gm = GuildManagerService.getGuildManager(u.getLongID(), guild.getLongID());
+                                if (gm == null) {
+                                    GuildManagerService.saveGuildManager(
+                                            new GuildManager(
+                                                    GuildService.getGuild(guild.getLongID()),
+                                                    UserService.getUser(u.getLongID())
+                                            )
+                                    );
+                                    BotUtils.sendLocaleMessage(event.getChannel(), "general_settings_successful", "Manager set - " + u.getName());
+                                } else {
+                                    BotUtils.sendLocaleMessage(event.getChannel(), "manage_set_already_manager_error", u.getName());
+                                }
+                            }
+                        }
                     } else {
-                        BotUtils.sendLocaleMessage(event.getChannel(), "general_role_not_found_error");
+                        BotUtils.sendLocaleMessage(event.getChannel(), "general_user_not_found_error", args.get(0));
                     }
                 } else {
-                    BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage", "`set manager 'name_or_mention'`");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage", "`set manager 'user_mention' [user_mentions...]`");
                 }
             }
 
-            else if (args.get(0).equals("rmmanager")) {
-                if (args.size() == 2) {
-                    List<IUser> users = event.getMessage().getMentions();
-                    if (users.size() == 1) {
-                        if (!users.get(0).isBot()) {
-                            CommandStamp commandStamp = new CommandStamp(event, CommandState.ACCEPT_REMOVE);
-                            commandStamp.generateCaptcha();
-                            Commands.addCommandStamp(author, commandStamp);
+            else if (args.get(0).equals("remove")) {
+                List<IUser> users = event.getMessage().getMentions();
+                List<IRole> roles = event.getMessage().getRoleMentions();
 
-                            BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha", commandStamp.getFormattedCaptcha());
-                        } else {
-                            BotUtils.sendLocaleMessage(event.getChannel(), "general_user_is_bot_error");
-                        }
-                    } else if(!event.getGuild().getUsersByName(args.get(1)).isEmpty()) {
-                        IUser user = event.getGuild().getUsersByName(args.get(1)).get(0);
-                        if (!user.isBot()) {
-                            CommandStamp commandStamp = new CommandStamp(event, CommandState.ACCEPT_REMOVE);
-                            commandStamp.generateCaptcha();
-                            Commands.addCommandStamp(author, commandStamp);
+                if (args.size() >= 2 && (users.size() + roles.size() > 0)) {
+                    String[] commandStampData = new String[2];
+                    if (users.size() > 0)
+                        commandStampData[0] = users.toString();
+                    if (roles.size() > 0)
+                        commandStampData[1] = roles.toString();
 
-                            BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha", commandStamp.getFormattedCaptcha());
-                        } else {
-                            BotUtils.sendLocaleMessage(event.getChannel(), "general_user_is_bot_error");
-                        }
-                    } else {
-                        BotUtils.sendLocaleMessage(event.getChannel(), "general_role_not_found_error");
-                    }
+                    CommandStamp commandStamp = new CommandStamp(event, CommandState.ACCEPT_REMOVE, commandStampData);
+                    commandStamp.generateCaptcha();
+                    Commands.addCommandStamp(author, commandStamp);
+
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha", commandStamp.getFormattedCaptcha());
                 } else {
-                    BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage", "`set rmmanager 'name_or_mention'`");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage", "`set remove 'user_or_role_mention' [user_or_role_mentions...]`");
                 }
             }
 
@@ -132,6 +129,23 @@ public class Set {
 
     public static void help(MessageReceivedEvent event) {
         BotUtils.sendLocaleMessage(event.getChannel(), "manage_set_help_message");
+    }
+
+    public static List<IUser> removeManagerUsers(MessageReceivedEvent event, List<IUser> users) {
+        List<IUser> notRemovedUsers = new ArrayList<>();
+        Long guildId = event.getGuild().getLongID();
+
+        for(IUser u : users) {
+            if (!u.isBot()) {
+                GuildManager guildManager = GuildManagerService.getGuildManager(guildId, u.getLongID());
+                if (guildManager != null) {
+                    GuildManagerService.deleteGuildManager(guildManager);
+                } else
+                    notRemovedUsers.add(u);
+            }
+        }
+
+        return notRemovedUsers;
     }
 
     public static void remove(MessageReceivedEvent event) {

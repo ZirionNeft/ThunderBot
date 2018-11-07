@@ -1,5 +1,6 @@
 package zirionneft.thunder.handler;
 
+import org.apache.log4j.Logger;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IUser;
@@ -7,7 +8,9 @@ import zirionneft.thunder.BotUtils;
 import zirionneft.thunder.Database;
 import zirionneft.thunder.Thunder;
 import zirionneft.thunder.command.*;
-import zirionneft.thunder.handler.obj.Command;
+import zirionneft.thunder.database.entity.Guild;
+import zirionneft.thunder.database.service.GuildService;
+import zirionneft.thunder.handler.obj.ICommand;
 import zirionneft.thunder.handler.obj.CommandStamp;
 import zirionneft.thunder.handler.obj.CommandState;
 
@@ -15,17 +18,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
+
 
 import static zirionneft.thunder.handler.obj.CommandState.FREE;
 
 public class Commands {
     static private String PREFIX = Thunder.getSettingsInstance().getOne("thunder_chat_prefix");
-    static private HashMap<Long, String> PREFIXES = Database.getGuildPrefixes();
     static Logger logger = Logger.getLogger("Commands.class");
 
     private static HashMap<IUser, CommandStamp> stampList = new HashMap<>();
-    private static HashMap<String, Command> commands = new HashMap<>();
+    private static HashMap<String, ICommand> commands = new HashMap<>();
 
     static {
         commands.put("help", Help::run);
@@ -113,8 +115,9 @@ public class Commands {
                 argsList = new ArrayList<>(Arrays.asList(command));
                 argsList.remove(0);
             } else {
-                if (PREFIXES.containsKey(guildId))
-                    PREFIX = PREFIXES.get(guildId);
+                Guild g = GuildService.getGuild(event.getGuild().getLongID());
+                if (!g.getBotPrefix().isEmpty())
+                    PREFIX = g.getBotPrefix();
 
                 if (!command[0].startsWith(PREFIX))
                     return;
@@ -159,13 +162,5 @@ public class Commands {
 
     public static HashMap<IUser, CommandStamp> getCommandStamps() {
         return stampList;
-    }
-
-    public static void updateGuildsPrefixes() {
-        PREFIXES = Database.getGuildPrefixes();
-    }
-
-    public static HashMap<Long, String> getGuildPrefixes() {
-        return PREFIXES;
     }
 }

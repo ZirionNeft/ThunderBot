@@ -8,11 +8,12 @@ import java.sql.*;
 import java.util.*;
 import java.util.logging.Logger;
 
+@Deprecated
 public class Database {
     static Logger logger = Logger.getLogger("Database.class");
 
     private static Connection connect() throws SQLException {
-        String url = "jdbc:mysql://" + Thunder.getSettingsInstance().getOne("db_host") + ":3306/thunder_bot?useSSL=false";
+        String url = "jdbc:mysql://" + Thunder.getSettingsInstance().getOne("db_host") + ":3306/thunder_bot?useSSL=false&serverTimezone=UTC";
         String user = Thunder.getSettingsInstance().getOne("db_user");
         String pass = Thunder.getSettingsInstance().getOne("db_password");
 

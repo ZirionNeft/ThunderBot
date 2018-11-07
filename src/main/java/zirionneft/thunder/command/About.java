@@ -3,6 +3,8 @@ package zirionneft.thunder.command;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.util.EmbedBuilder;
 import zirionneft.thunder.*;
+import zirionneft.thunder.database.entity.Guild;
+import zirionneft.thunder.database.service.GuildService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,12 +13,9 @@ public class About {
     public static void run(MessageReceivedEvent event, List<String> args) {
         EmbedBuilder builder = new EmbedBuilder();
 
-        String prefix;
-        HashMap<Long, String> prefixes = Database.getGuildPrefixes();
-        if (prefixes.containsKey(event.getGuild().getLongID()))
-            prefix = prefixes.get(event.getGuild().getLongID());
-        else
-            prefix = Thunder.getSettingsInstance().getOne("thunder_chat_prefix");
+        Guild guild = GuildService.getGuild(event.getGuild().getLongID());
+        String prefix = guild.getBotPrefix();
+        GuildService.saveGuild(guild);
 
         builder.withThumbnail(Thunder.getClientInstance().getOurUser().getAvatarURL());
         builder.withAuthorName("Thunder");

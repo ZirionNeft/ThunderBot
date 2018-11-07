@@ -26,7 +26,7 @@ public class Settings {
     static {
         locale = new Properties();
         try {
-            if (LOCALE_PATH.isEmpty())
+            if (LOCALE_PATH == null)
                 locale.load(new FileReader("src/main/resources/locales/en.properties"));
             else
                 locale.load(new FileReader(LOCALE_PATH));
@@ -49,9 +49,6 @@ public class Settings {
         CFG.put("thunder_weather_service", "OpenWeatherMap");
         CFG.put("thunder_translate_service", "Yandex");
         CFG.put("thunder_locale", "en");
-        CFG.put("db_host", "localhost");
-        CFG.put("db_user", "root");
-        CFG.put("db_password", "");
 
         CFG.put("config_version", CFG_VERSION);
     }

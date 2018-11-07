@@ -1,5 +1,6 @@
 package zirionneft.thunder.handler;
 
+import org.apache.log4j.Logger;
 import org.json.simple.parser.ParseException;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
@@ -18,7 +19,6 @@ import zirionneft.thunder.command.Weather;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Logger;
 
 public class Events {
     private static final int PRESENCE_PERIOD = 7; // in minutes

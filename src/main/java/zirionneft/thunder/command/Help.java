@@ -2,12 +2,13 @@ package zirionneft.thunder.command;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import zirionneft.thunder.BotUtils;
+import zirionneft.thunder.handler.obj.IHelp;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class Help {
-    private static HashMap<String, zirionneft.thunder.handler.obj.Help> helpCommands = new HashMap<>();
+    private static HashMap<String, IHelp> helpCommands = new HashMap<>();
     static {
         helpCommands.put("help", Help::help);
         helpCommands.put("weather", Weather::help);

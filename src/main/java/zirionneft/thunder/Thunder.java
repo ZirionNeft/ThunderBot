@@ -5,11 +5,23 @@ import org.apache.log4j.Logger;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.hibernate.HibernateException;
+import org.hibernate.Metamodel;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.internal.SessionFactoryRegistry;
+import org.hibernate.query.Query;
 import sx.blah.discord.api.IDiscordClient;
+import zirionneft.thunder.database.HibernateSessionFactoryUtil;
+import zirionneft.thunder.database.entity.Guild;
+import zirionneft.thunder.database.entity.GuildManager;
+import zirionneft.thunder.database.entity.User;
 import zirionneft.thunder.handler.Calculations;
 import zirionneft.thunder.handler.Commands;
 import zirionneft.thunder.handler.Events;
 
+import javax.persistence.metamodel.EntityType;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,19 +33,24 @@ public class Thunder {
     private static IDiscordClient client;
     private static Settings settings;
 
+    private static SessionFactory sessionFactory;
+
     public static void main(String[] args) {
         BasicConfigurator.configure();
+        sessionFactory = HibernateSessionFactoryUtil.configureSessionFactory();
+
         settings = new Settings();
         settings.init();
 
-        Database.init();
-
         logger.info("Weather API powered by " + settings.getOne("thunder_weather_service"));
 
-        if (settings.getKey("discord_test_key").isEmpty()) {
+        if (args.length == 0) {
             client = BotUtils.getBotDiscordClient(settings.getKey("discord_key"));
-        } else {
+        } else if (args[0].equals("test")){
             client = BotUtils.getBotDiscordClient(settings.getKey("discord_test_key"));
+        } else {
+            logger.error("Discord API keys in 'keys.properties' not provided!");
+            System.exit(0);
         }
 
         client.getDispatcher().registerListener(new Commands());
@@ -70,5 +87,9 @@ public class Thunder {
             e.printStackTrace();
         }
         return "Error";
+    }
+
+    public static Session getHibernateSession() throws HibernateException {
+        return sessionFactory.openSession();
     }
 }

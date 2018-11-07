@@ -1,5 +1,6 @@
 package zirionneft.thunder.command;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -15,7 +16,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.logging.Logger;
+
 
 public class Translate {
     static Logger logger = Logger.getLogger("Translate.class");
@@ -81,7 +82,7 @@ public class Translate {
                 String[] langs = trQuery.get("lang").toString().split("-");
                 BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_successful", langs[0].toUpperCase(), msg, langs[1].toUpperCase(), ((JSONArray)trQuery.get("text")).get(0), provider);
             } else {
-                logger.warning("Translate ERROR: code " + code + " - Visit API-provider site to get more info");
+                logger.warn("Translate ERROR: code " + code + " - Visit API-provider site to get more info");
             }
         } catch (ParseException e) {
             e.printStackTrace();

@@ -1,5 +1,6 @@
 package zirionneft.thunder.command;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -16,7 +17,6 @@ import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,9 +57,7 @@ public class Weather {
 
             else if (args.get(0).equals("set")) {
                 if (args.size() != 2 && args.size() != 3) {
-                    BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `weather set 'city' ['time']`" +
-                            "\n* city - City for which the weather is needed" +
-                            "\n* time - (Optional) Time(UTC) to send to PM in format hh:mm; -1 to disable feature`");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage", "`weather set 'city' [time(UTC)]`");
                 } else if (args.size() == 3) {
                     Matcher matcher = Pattern.compile("^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$").matcher(args.get(2));
                     if (matcher.find() || args.get(2).equals("-1")) {
@@ -69,11 +67,9 @@ public class Weather {
                             Database.addWeatherRow(event.getAuthor(), args.get(1), args.get(2));
                         }
 
-                        BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: Your weather settings successful updated!");
+                        BotUtils.sendLocaleMessage(event.getChannel(), "general_settings_successful","Weather");
                     } else {
-                        BotUtils.sendMessage(event.getChannel(), ":information_source: **Usage:** `weather set 'city' ['time']`" +
-                                "\n* city - City for which the weather is needed" +
-                                "\n* time - (Optional) Time(UTC) to send to PM in format HH:mm; -1 to disable feature");
+                        BotUtils.sendLocaleMessage(event.getChannel(), "general_command_usage", "`weather set 'city' [time(UTC)]`");
                     }
 
                 } else {
@@ -82,7 +78,7 @@ public class Weather {
                     else
                         Database.addWeatherRow(event.getAuthor(), args.get(1), "-1");
 
-                    BotUtils.sendMessage(event.getChannel(), ":ballot_box_with_check: Your weather settings successful updated!");
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_settings_successful","Weather");
                 }
             }
 
@@ -96,17 +92,13 @@ public class Weather {
                 BotUtils.sendMessage(event.getChannel(), embedObject);
             }
         } catch (Exception e) {
-            BotUtils.sendMessage(event.getChannel(), ":frowning2: Something went wrong...\nMaybe couldn't connect to the weather provider host ("+Thunder.getSettingsInstance().getOne("thunder_weather_service")+"), try later!");
+            BotUtils.sendLocaleMessage(event.getChannel(), "general_unknown_error");
             e.printStackTrace();
         }
     }
 
     public static void help(MessageReceivedEvent event) {
-        BotUtils.sendMessage(event.getChannel(), ":zap: **Weather commands** :zap:\n" +
-                "`weather` - Displays the weather by your city\n" +
-                "`weather set 'city' ['HH:mm']` - Sets the city and time(UTC) of auto-display weather in PM\n" +
-                "`weather time 'HH:mm'` - Change or set time(UTC) of PM weather broadcast. -1 to disable feature\n" +
-                "`weather 'city'` - Displays the weather in this city\n");
+        BotUtils.sendLocaleMessage(event.getChannel(), "utils_weather_help_message");
     }
 
     public static EmbedObject embedWeatherBuilder(List<String> row) throws IOException,ParseException {

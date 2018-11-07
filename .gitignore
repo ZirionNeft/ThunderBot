@@ -7,6 +7,9 @@ keys.properties
 target/
 logs/
 
+# Hibernate
+hibernate.cfg.xml
+
 # Compiled class file
 *.class
 
