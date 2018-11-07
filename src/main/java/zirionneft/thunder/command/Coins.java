@@ -4,11 +4,8 @@ import org.apache.log4j.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IUser;
 import zirionneft.thunder.BotUtils;
-import zirionneft.thunder.Database;
-import zirionneft.thunder.Settings;
 import zirionneft.thunder.database.entity.User;
 import zirionneft.thunder.database.service.UserService;
-import zirionneft.thunder.handler.Commands;
 import zirionneft.thunder.handler.obj.CommandStamp;
 import zirionneft.thunder.handler.obj.CommandState;
 
@@ -16,7 +13,7 @@ import java.util.List;
 
 public class Coins {
     static Logger logger = Logger.getLogger("Coins.java");
-    private static final int MIN_TRANSFER_COINS = 30;
+    private static final int MINIMAL_TRANSFER_COINS = 30;
 
     public static void run(MessageReceivedEvent event, List<String> args) {
         IUser author = event.getAuthor();
@@ -37,15 +34,15 @@ public class Coins {
                 if (!receiver.get(0).isBot()){
                     if (!receiver.get(0).equals(author)) {
                         try {
-                            if (Integer.parseInt(args.get(1)) >= MIN_TRANSFER_COINS) {
+                            if (Integer.parseInt(args.get(1)) >= MINIMAL_TRANSFER_COINS) {
                                 String[] data = {args.get(1)};
                                 CommandStamp commandStamp = new CommandStamp(event, CommandState.COINS_TRANSFER, data);
                                 commandStamp.generateCaptcha();
-                                Commands.addCommandStamp(author, commandStamp);
+                                CommandStamp.addCommandStamp(author, commandStamp);
 
                                 BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha", commandStamp.getFormattedCaptcha());
                             } else {
-                                BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_transfer_min_amount_error", MIN_TRANSFER_COINS);
+                                BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_transfer_min_amount_error", MINIMAL_TRANSFER_COINS);
                             }
                         } catch (NumberFormatException e) {
                             BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_transfer_amount_error");
@@ -69,7 +66,7 @@ public class Coins {
     }
 
 
-    public static boolean transaction(IUser sender, IUser receiver, int coins) {
+    public static boolean coinsTransaction(IUser sender, IUser receiver, int coins) {
         User senderEntity = UserService.getUser(sender.getLongID());
         User receiverEntity = UserService.getUser(receiver.getLongID());
 

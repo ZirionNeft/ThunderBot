@@ -5,99 +5,55 @@ import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IUser;
 import zirionneft.thunder.BotUtils;
-import zirionneft.thunder.Database;
 import zirionneft.thunder.Thunder;
 import zirionneft.thunder.command.*;
 import zirionneft.thunder.database.entity.Guild;
+import zirionneft.thunder.database.entity.User;
 import zirionneft.thunder.database.service.GuildService;
-import zirionneft.thunder.handler.obj.ICommand;
+import zirionneft.thunder.database.service.UserService;
 import zirionneft.thunder.handler.obj.CommandStamp;
-import zirionneft.thunder.handler.obj.CommandState;
+import zirionneft.thunder.handler.obj.ICommand;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-
-import static zirionneft.thunder.handler.obj.CommandState.FREE;
-
 public class Commands {
     static private String PREFIX = Thunder.getSettingsInstance().getOne("thunder_chat_prefix");
     static Logger logger = Logger.getLogger("Commands.class");
 
-    private static HashMap<IUser, CommandStamp> stampList = new HashMap<>();
-    private static HashMap<String, ICommand> commands = new HashMap<>();
+    private static HashMap<String, ICommand> botCommands = new HashMap<>();
 
     static {
-        commands.put("help", Help::run);
-        commands.put("about", About::run);
-        commands.put("info", About::run);
-        commands.put("support", Support::run);
-        commands.put("weather", Weather::run);
-        commands.put("wr", Weather::run);
-        commands.put("tr", Translate::run);
-        commands.put("translate", Translate::run);
-        commands.put("stats", Info::run);
-        commands.put("set", Set::run);
-        commands.put("credits", Coins::run);
-        commands.put("coins", Coins::run);
+        botCommands.put("help", Help::run);
+        botCommands.put("about", About::run);
+        botCommands.put("info", About::run);
+        botCommands.put("support", Support::run);
+        botCommands.put("weather", Weather::run);
+        botCommands.put("wr", Weather::run);
+        botCommands.put("tr", Translate::run);
+        botCommands.put("translate", Translate::run);
+        botCommands.put("stats", Info::run);
+        botCommands.put("set", Set::run);
+        botCommands.put("credits", Coins::run);
+        botCommands.put("coins", Coins::run);
     }
 
     @EventSubscriber
     public void onMessageReceived(MessageReceivedEvent event) {
-        try {
-            String command[] = event.getMessage().getContent().split(" ");
-            long guildId = event.getGuild().getLongID();
-            IUser author = event.getAuthor();
+        String command[] = event.getMessage().getContent().split(" ");
+        IUser author = event.getAuthor();
 
+        try {
             if (event.getAuthor().isBot())
                 return;
 
             if (command.length == 0)
                 return;
 
-            if (stampList.containsKey(author)) {
-                if (event.getGuild().equals(getStampEvent(author).getGuild())) {
-                    switch (getStampState(author)) {
-                        case ACCEPT_REMOVE:
-                            if (stampList.get(author).isValidCaptcha(event.getMessage().getContent().trim())) {
-                                Set.remove(event);
-                            } else {
-                                BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha_error");
-                            }
-                            break;
-
-                        case TRANSLATE:
-                            String msg = event.getMessage().toString();
-                            if (msg.equals("0")) {
-                                BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_skip", author.getName());
-                            } else {
-                                Translate.showTranslate(event, stampList.get(author).getData()[0], msg);
-                            }
-                            break;
-
-                        case COINS_TRANSFER:
-                            if (stampList.get(author).isValidCaptcha(event.getMessage().getContent().trim())) {
-                                if (Coins.transaction(
-                                        author,
-                                        stampList.get(author).getEvent().getMessage().getMentions().get(0),
-                                        Integer.parseInt(stampList.get(author).getData()[0])
-                                )) {
-                                    BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_transfer_success", Database.getUserCash(author));
-                                } else {
-                                    BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_not_enough_error");
-                                }
-                            } else {
-                                BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha_error");
-                            }
-                            break;
-                    }
-                    stampList.remove(author);
-
-                    return;
-                }
-            }
+            if(isContainsInCommandStamps(event, author))
+                return;
 
             List<String> argsList;
             String cmd;
@@ -107,7 +63,7 @@ public class Commands {
                     !event.getMessage().mentionsHere()
             ) {
                 if (command.length == 1 && event.getMessage().getMentions().size() == 1) {
-                    commands.get("about").run(event, null);
+                    botCommands.get("about").run(event, null);
                     return;
                 }
 
@@ -127,40 +83,62 @@ public class Commands {
             }
             argsList.remove(0);
 
-            if (commands.containsKey(cmd)) {
-                commands.get(cmd).run(event, argsList);
+            if (botCommands.containsKey(cmd)) {
+                botCommands.get(cmd).run(event, argsList);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-    private static CommandState getStampState(IUser user) {
-        if (stampList.containsKey(user))
-            return stampList.get(user).getState();
-        return FREE;
-    }
+    private static Boolean isContainsInCommandStamps(MessageReceivedEvent event, IUser author) {
+        CommandStamp commandStamp = CommandStamp.getCommandStamp(author);
 
-    public static MessageReceivedEvent getStampEvent(IUser user) {
-        return stampList.get(user).getEvent();
-    }
+        if (commandStamp == null)
+            return false;
 
-    public static boolean addCommandStamp(IUser user, CommandStamp stamp) {
-        if (!stampList.containsKey(user)) {
-            stampList.put(user, stamp);
-            return true;
+        if (!event.getGuild().equals(commandStamp.getEvent().getGuild()))
+            return false;
+
+        switch (commandStamp.getState()) {
+            case ACCEPT_ROLE_REMOVE:
+                if (commandStamp.isValidCaptcha(event.getMessage().getContent().trim())) {
+                    Guild guildEntity = GuildService.getGuild(event.getGuild().getLongID());
+                    guildEntity.setManagerRoleId(null);
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_settings_successful", "Remove Role Manager");
+                } else {
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha_error");
+                }
+                break;
+
+            case TRANSLATE:
+                String msg = event.getMessage().toString();
+                if (msg.equals("0")) {
+                    BotUtils.sendLocaleMessage(event.getChannel(), "utils_translate_skip", author.getName());
+                } else {
+                    Translate.showTranslate(event, commandStamp.getData()[0].toString(), msg);
+                }
+                break;
+
+            case COINS_TRANSFER:
+                if (commandStamp.isValidCaptcha(event.getMessage().getContent().trim())) {
+                    if (Coins.coinsTransaction(
+                            author,
+                            commandStamp.getEvent().getMessage().getMentions().get(0),
+                            Integer.parseInt(commandStamp.getData()[0].toString())
+                    )) {
+                        User userEntity = UserService.getUser(author.getLongID());
+                        BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_transfer_success", userEntity.getCoins());
+                    } else {
+                        BotUtils.sendLocaleMessage(event.getChannel(), "social_coins_not_enough_error");
+                    }
+                } else {
+                    BotUtils.sendLocaleMessage(event.getChannel(), "general_captcha_error");
+                }
+                break;
         }
-        return false;
-    }
+        CommandStamp.removeCommandStamp(author);
 
-    public static void removeCommandStamp(ArrayList<IUser> users) {
-        for (IUser user : users) {
-            stampList.remove(user);
-        }
-    }
-
-    public static HashMap<IUser, CommandStamp> getCommandStamps() {
-        return stampList;
+        return true;
     }
 }

@@ -1,15 +1,15 @@
 package zirionneft.thunder.handler.obj;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IUser;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
 
 public class CommandStamp {
     private static final int LIFETIME = 3; // Stamp lifetime in minutes
 
     private static ArrayList<String> emojiNumbers = new ArrayList<>();
+    private static HashMap<IUser, CommandStamp> stampList = new HashMap<>();
 
     static {
         emojiNumbers.add(":zero:");
@@ -26,14 +26,14 @@ public class CommandStamp {
 
     private MessageReceivedEvent event;
     private CommandState state;
-    private String[] data;
+    private Object[] data;
     private Integer captcha;
     private Date date;
 
-    public CommandStamp(MessageReceivedEvent event, CommandState state, String[] data) {
+    public CommandStamp(MessageReceivedEvent event, CommandState state, Object[] data) {
         this.event = event;
         this.state = state;
-        this.data = data.clone();
+        this.data = data;
         this.date = new Date();
         this.date.setTime(this.date.getTime() + (LIFETIME * 1000 * 60));
     }
@@ -60,7 +60,7 @@ public class CommandStamp {
         return this.event;
     }
 
-    public String[] getData() {
+    public Object[] getData() {
         return this.data;
     }
 
@@ -84,5 +84,19 @@ public class CommandStamp {
 
     public boolean isValidCaptcha(String input) {
        return this.captcha.toString().equals(input);
+    }
+
+    public static CommandStamp getCommandStamp(IUser user) {
+        return Optional.ofNullable(stampList.get(user)).orElseGet(() -> null);
+    }
+
+    public static void addCommandStamp(IUser user, CommandStamp stamp) {
+        if (!stampList.containsKey(user)) {
+            stampList.put(user, stamp);
+        }
+    }
+
+    public static void removeCommandStamp(IUser user) {
+        stampList.remove(user);
     }
 }

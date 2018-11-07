@@ -12,16 +12,13 @@ import java.util.Set;
 public class Guild {
     @Id
     @Column(name = "guildId", nullable = false)
-    private long guildId;
+    private Long guildId;
 
     @Column(name = "botPrefix")
     private String botPrefix = Thunder.getSettingsInstance().getOne("thunder_chat_prefix");
 
     @Column(name = "managerRoleId")
-    private long managerRoleId;
-
-    @OneToMany(mappedBy = "guild", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GuildManager> managers = new HashSet<>();
+    private Long managerRoleId = null;
 
     public Guild() {}
 
@@ -33,15 +30,15 @@ public class Guild {
         this.botPrefix = botPrefix;
     }
 
-    public void setManagerRoleId(long managerRoleId) {
+    public void setManagerRoleId(Long managerRoleId) {
         this.managerRoleId = managerRoleId;
     }
 
-    public long getGuildId() {
+    public Long getGuildId() {
         return guildId;
     }
 
-    public long getManagerRoleId() {
+    public Long getManagerRoleId() {
         return managerRoleId;
     }
 

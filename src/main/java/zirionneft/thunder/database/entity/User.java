@@ -9,13 +9,13 @@ import java.util.Set;
 public class User {
     @Id
     @Column(name = "user_id", nullable = false)
-    private long userId;
+    private Long userId;
 
     @Column(name = "exp")
-    private double exp = 0;
+    private Double exp = .0;
 
     @Column(name = "coins")
-    private double coins = 200;
+    private Double coins = 200.0;
 
     @Column(name = "donator")
     private boolean donator = false;
@@ -26,9 +26,6 @@ public class User {
     @Column(name = "broadcast_time")
     private String broadcastTime = "-1";
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GuildManager> guildManager = new HashSet<>();
-
     public User() {
     }
 
@@ -36,15 +33,15 @@ public class User {
         userId = discord_user_id;
     }
 
-    public long getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public double getExp() {
+    public Double getExp() {
         return exp;
     }
 
-    public double getCoins() {
+    public Double getCoins() {
         return coins;
     }
 
@@ -78,9 +75,5 @@ public class User {
 
     public void setCity(String city) {
         this.city = city;
-    }
-
-    public Set<GuildManager> getGuildManager() {
-        return guildManager;
     }
 }
