@@ -4,7 +4,7 @@
 
     <groupId>zirionneft</groupId>
     <artifactId>Thunder</artifactId>
-    <version>b0.25</version>
+    <version>b0.25.5</version>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -96,7 +96,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>zirionneft.thunder.Thunder</mainClass>
+                            <mainClass>com.thunderbot.zirionneft.Thunder</mainClass>
                         </manifest>
                     </archive>
                     <finalName>ThunderBot</finalName>

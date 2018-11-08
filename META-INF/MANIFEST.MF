@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: zirionneft.thunder.Thunder
+Main-Class: com.thunderbot.zirionneft.Thunder
 
