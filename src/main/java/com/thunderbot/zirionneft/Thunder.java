@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 
 public class Thunder {
     static Logger logger = Logger.getLogger("Thunder.class");
@@ -29,6 +30,21 @@ public class Thunder {
 
     public static void main(String[] args) {
         BasicConfigurator.configure();
+
+        try {
+            System.setProperty("java.library.path", System.getProperty("user.dir") + "\\target\\classes\\libs");
+            Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+            fieldSysPath.setAccessible(true);
+            fieldSysPath.set(null, null);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            logger.error("Failed to get permissions to set library path");
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+            logger.error("Failed to get field handle to set library path");
+        }
+        System.loadLibrary("webp-imageio");
+
         sessionFactory = HibernateSessionFactoryUtil.configureSessionFactory();
 
         settings = new Settings();

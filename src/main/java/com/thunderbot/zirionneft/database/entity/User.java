@@ -12,7 +12,10 @@ public class User {
     private Long userId;
 
     @Column(name = "exp")
-    private Double exp = .0;
+    private Long exp = 0L;
+
+    @Column(name = "level")
+    private Integer level = 0;
 
     @Column(name = "coins")
     private Double coins = 200.0;
@@ -37,8 +40,12 @@ public class User {
         return userId;
     }
 
-    public Double getExp() {
+    public Long getExp() {
         return exp;
+    }
+
+    public Integer getLevel() {
+        return level;
     }
 
     public Double getCoins() {
@@ -57,12 +64,16 @@ public class User {
         return city;
     }
 
-    public void setCoins(double coins) {
+    public void setCoins(Double coins) {
         this.coins = coins;
     }
 
-    public void setExp(double exp) {
+    public void setExp(Long exp) {
         this.exp = exp;
+    }
+
+    public void setLevel(Integer level) {
+        this.level = level;
     }
 
     public void setDonator(boolean donator) {

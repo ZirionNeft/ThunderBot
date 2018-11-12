@@ -11,9 +11,7 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RequestBuffer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.net.URLConnection;
@@ -44,6 +42,16 @@ public class BotUtils {
            } catch (DiscordException e) {
                e.printStackTrace();
            }
+        });
+    }
+
+    public static void sendImage(IChannel channel, File image) {
+        RequestBuffer.request(() -> {
+            try {
+                channel.sendFile(image);
+            } catch (DiscordException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {}
         });
     }
 

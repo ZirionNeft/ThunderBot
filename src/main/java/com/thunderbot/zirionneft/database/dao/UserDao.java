@@ -2,6 +2,7 @@ package com.thunderbot.zirionneft.database.dao;
 
 import com.thunderbot.zirionneft.Thunder;
 import com.thunderbot.zirionneft.database.entity.User;
+import org.hibernate.Criteria;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;

@@ -26,16 +26,17 @@ public class Commands {
     static {
         botCommands.put("help", Help::run);
         botCommands.put("about", About::run);
-        botCommands.put("info", About::run);
+        //botCommands.put("info", Info::run);
         botCommands.put("support", Support::run);
         botCommands.put("weather", Weather::run);
         botCommands.put("wr", Weather::run);
         botCommands.put("tr", Translate::run);
         botCommands.put("translate", Translate::run);
-        botCommands.put("stats", Info::run);
+        //botCommands.put("stats", Info::run);
         botCommands.put("set", Set::run);
         botCommands.put("credits", Coins::run);
         botCommands.put("coins", Coins::run);
+        botCommands.put("profile", Profile::run);
     }
 
     @EventSubscriber

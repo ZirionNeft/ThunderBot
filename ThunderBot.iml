@@ -32,6 +32,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="org.xerial:sqlite-jdbc:3.21.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="luciad-webp-imageio-1.0.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.github.austinv11:Discord4j:2.10.0" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.8" level="project" />
